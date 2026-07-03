@@ -37,7 +37,7 @@
 - [x] T025 [US1] Implement teacher roster and share-link components in frontend/src/features/teacher/components/
 - [x] T026 [US1] Implement current sentence window component in frontend/src/features/live-room/CurrentSentenceWindow.tsx
 - [x] T027 [US1] Wire Teacher routes in frontend/src/routes/AppRoutes.tsx
-- [ ] T028 [US1] Validate US1 manually using specs/001-offline-live-room-frontend/quickstart.md
+- [x] T028 [US1] Validate US1 manually using specs/001-offline-live-room-frontend/quickstart.md
 
 ## Phase 3A: Layout & Dynamic Component Refactor (Design Skill Pass)
 **Goal**: Replace overly spread full-page layouts with a compact responsive app shell, navigation bar, collapsible panels, dynamic workspace components, and Theme 2 white-canvas consistency before continuing US2.
