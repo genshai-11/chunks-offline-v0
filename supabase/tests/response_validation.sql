@@ -242,6 +242,51 @@ begin
   end;
 end $$;
 
+-- First responder mode must accept an online room member even when assigned_learner_id is null.
+do $$
+declare
+  ids response_validation_ids%rowtype;
+  cci_id_v uuid;
+  cci_x_v numeric;
+  cvr_v numeric;
+  round4_id uuid;
+begin
+  select * into ids from response_validation_ids limit 1;
+  select id, standard_value into cci_id_v, cci_x_v from public.cci_standard_cards where active = true order by label limit 1;
+  select coalesce(cvr_value, default_cvr_value, 1) into cvr_v from public.sentence_resources where id = ids.sentence_id;
+
+  update public.room_memberships
+  set presence_status = 'online'
+  where room_id = ids.room_id and learner_id = ids.observing_learner_id;
+
+  insert into public.room_rounds (
+    room_id,
+    sentence_resource_id,
+    assigned_learner_id,
+    cci_standard_card_id,
+    cci_standard_x,
+    cvr_value,
+    round_index,
+    status,
+    response_capture_mode_snapshot,
+    scoring_mode_snapshot,
+    opened_by,
+    sequence_key,
+    opened_at
+  ) values (ids.room_id, ids.sentence_id, null, cci_id_v, cci_x_v, cvr_v,
+    4, 'open', 'first_responder', 'simple', 'SQL Validator', 'RVSQL1-4', now())
+  returning id into round4_id;
+
+  begin
+    insert into public.learner_responses (round_id, learner_id, response_color, performance_y, reflection_time_ms)
+    values (round4_id, ids.observing_learner_id, 'yellow', 1, 700);
+    insert into response_validation_results values ('first-responder-accepted', true, 'First responder insert succeeded for online room member');
+  exception
+    when others then
+      insert into response_validation_results values ('first-responder-accepted', false, SQLERRM);
+  end;
+end $$;
+
 -- Closing an open round with a response must finalize the accepted response.
 do $$
 declare
