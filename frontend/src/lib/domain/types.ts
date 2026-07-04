@@ -84,6 +84,35 @@ export interface CciStandardCard {
   updated_at: string
 }
 
+export interface CvrUnit {
+  id: UUID
+  label: string
+  unit_symbol: string
+  value: number
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type AudioGenerationStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'skipped'
+export type AudioGenerationLanguage = 'en' | 'vi'
+
+export interface AudioGenerationJob {
+  id: UUID
+  resource_id: UUID
+  language: AudioGenerationLanguage
+  status: AudioGenerationStatus
+  provider: string | null
+  model: string | null
+  storage_path: string | null
+  public_url: string | null
+  error_message: string | null
+  requested_by: string | null
+  created_at: string
+  updated_at: string
+  completed_at: string | null
+}
+
 export interface Learner {
   id: UUID
   auth_user_id: UUID | null

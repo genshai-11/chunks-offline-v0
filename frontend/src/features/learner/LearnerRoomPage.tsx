@@ -134,11 +134,13 @@ export function LearnerRoomPage({ learnerId, roomCode }: LearnerRoomPageProps) {
           <Card variant="dark">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/60">Current sentence</p>
-                <h2 className="mt-3 text-3xl font-semibold leading-tight text-white">
-                  {sentence?.text_en ?? sentence?.text_prompt ?? 'Waiting for teacher to open a sentence.'}
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/60">Current sentence code</p>
+                <h2 className="mt-3 font-mono text-4xl font-semibold leading-tight text-white">
+                  {sentence?.sentence_code ?? 'Waiting for teacher'}
                 </h2>
-                {sentence?.text_vi ? <p className="mt-4 text-lg leading-7 text-white/75">{sentence.text_vi}</p> : null}
+                <p className="mt-4 max-w-xl text-base leading-7 text-white/75">
+                  Listen to the classroom audio from your teacher, then answer with Red, Yellow, or Green when you are eligible.
+                </p>
               </div>
               <StatusBadge tone={state.currentRound?.status === 'open' ? 'success' : 'neutral'}>
                 {state.currentRound?.status ?? state.room.status}

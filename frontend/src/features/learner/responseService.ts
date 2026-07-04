@@ -101,7 +101,7 @@ export async function submitLearnerResponse(
   const round = roundResult.data as RoomRound
 
   if (round.status !== 'open') throw createDomainError('round_not_open')
-  if (round.response_capture_mode_snapshot === 'assigned' && round.assigned_learner_id !== input.learnerId) {
+  if (round.response_capture_mode_snapshot !== 'first_responder' && round.assigned_learner_id !== input.learnerId) {
     throw createDomainError('learner_not_eligible')
   }
 
@@ -165,7 +165,7 @@ function deriveLearnerState({
     return { learnerState: 'round_closed', disabledReason: 'The teacher has not opened a response window.' }
   }
   if (existingResponse) return { learnerState: 'already_responded', disabledReason: 'Your response was already captured.' }
-  if (currentRound.response_capture_mode_snapshot === 'assigned' && currentRound.assigned_learner_id !== learnerId) {
+  if (currentRound.response_capture_mode_snapshot !== 'first_responder' && currentRound.assigned_learner_id !== learnerId) {
     return { learnerState: 'observing', disabledReason: 'You are observing this assigned round.' }
   }
   if (currentRound.captured_learner_id === learnerId) return { learnerState: 'captured', disabledReason: 'Your response is captured.' }

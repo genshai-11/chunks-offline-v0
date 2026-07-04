@@ -8,7 +8,7 @@
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Teacher starts a live room and controls a sentence window (Priority: P1)
-Teacher Host creates a room, selects approved resources and CCI standard, receives room code/share link, opens an assigned-mode round, and sees current sentence window state.
+Teacher Host creates a room, selects approved resources and CCI standard, receives room code/share link, opens an assigned-mode round, sees current sentence window state, controls EN/VI audio playback for the classroom, and sees current sequence position (current sentence / total room resources).
 
 **Why this priority**: Without a teacher-controlled room and active round, learners have nothing to join or answer.
 
@@ -16,13 +16,15 @@ Teacher Host creates a room, selects approved resources and CCI standard, receiv
 
 **Acceptance Scenarios**:
 1. **Given** approved sentence resources and an active CCI card, **When** the teacher creates a room, **Then** the room enters lobby state with a unique room code and share link.
-2. **Given** a room in lobby with at least one member, **When** the teacher opens an assigned round, **Then** the round snapshots sentence, capture mode, assigned learner, CCI value, CVR value, and opened time.
+2. **Given** a room in lobby with at least one member, **When** the teacher opens an assigned round, **Then** the round snapshots sentence, capture mode, assigned learner, CCI value, CVR value, opened time, audio language selection, and sequence index.
 3. **Given** an open round, **When** the teacher closes it, **Then** learners can no longer submit and the teacher can advance.
+4. **Given** a current or next sentence has EN/VI audio, **When** the teacher starts or advances the sentence window, **Then** the selected audio language can play through the teacher device using browser audio playback and can be replayed/stopped without changing response history.
+5. **Given** at least one learner response is captured for the current round, **When** the teacher presses the configured keyboard shortcut, **Then** the room closes the current round if needed and advances to the next sentence while preserving exactly one tracked result per round.
 
 ---
 
 ### User Story 2 - Learner joins and submits Red / Yellow / Green response (Priority: P2)
-Learner opens a share link or enters a room code, provides display name, joins anonymously, sees current sentence/audio, and submits exactly one eligible Red / Yellow / Green response.
+Learner opens a share link or enters a room code, provides display name, joins anonymously, sees current round status and sentence code only (not full EN/VI sentence detail), hears classroom audio from the teacher device, and submits exactly one eligible Red / Yellow / Green response.
 
 **Why this priority**: Learner response capture is the core classroom interaction.
 
@@ -33,6 +35,7 @@ Learner opens a share link or enters a room code, provides display name, joins a
 2. **Given** assigned mode and the learner is assigned, **When** learner taps Green, **Then** response is captured with learner performance value 2 and reflection time.
 3. **Given** assigned mode and learner is observing, **When** response buttons render, **Then** buttons are disabled with an observing explanation.
 4. **Given** learner has already responded, **When** they tap another response, **Then** duplicate is rejected.
+5. **Given** a round is open, **When** the learner screen renders, **Then** it shows the room, round, sentence code, eligibility, and response controls without exposing the full sentence text prompt.
 
 ---
 
@@ -49,8 +52,8 @@ After each valid response, Teacher sees captured learner and round result; Learn
 
 ---
 
-### User Story 4 - Admin prepares resources and CCI standards (Priority: P4)
-Admin manages courses, lessons, sections, sentence resources, audio URLs, CVR Ω, approval status, CCI categories, and CCI standard cards.
+### User Story 4 - Admin prepares resources, audio, CVR, CCI, and session analytics (Priority: P4)
+Admin manages courses, lessons, sections, sentence resources, missing EN/VI audio generation, audio URLs, CVR Ω, approval status, CCI categories/cards, and dashboard analytics by live session and learner.
 
 **Why this priority**: Admin tools are required for production operation but seeded/imported MVP data can support earlier stories.
 
@@ -59,13 +62,15 @@ Admin manages courses, lessons, sections, sentence resources, audio URLs, CVR Ω
 **Acceptance Scenarios**:
 1. **Given** Admin opens Resource Manager, **When** they approve a sentence with CVR Ω and audio, **Then** it becomes available for teacher selection.
 2. **Given** Admin opens CCI Standard Manager, **When** they create an active card, **Then** Teacher can choose it.
+3. **Given** approved resources are missing EN or VI audio, **When** Admin starts a selected-resource or generate-all-missing secure audio generation job, **Then** missing audio is queued with deterministic storage paths, generated/uploaded server-side or by a secure operator script, and resource audio URLs are updated without exposing provider API keys in the browser.
+4. **Given** a completed live room, **When** Admin opens analytics, **Then** they can review session-level and learner-level response counts, color mix, CCI, CPD, reflection time, and per-learner distribution.
 
 ### Edge Cases
 - Invalid, expired, finished, or full room codes show a clear error and retry path.
 - Refresh retains learner room membership and current state.
 - Concurrent taps in first-responder mode capture only the first valid response.
 - Assigned-mode submissions from non-assigned learners are rejected even if client UI is manipulated.
-- Missing audio does not block text response.
+- Missing audio does not block text response, but Teacher audio controls must clearly show unavailable EN/VI tracks.
 - Closing a round while learner taps produces either one valid response or a closed-round rejection, never duplicates.
 - Batch Admin actions require confirmation and show partial failure details.
 
@@ -79,16 +84,21 @@ Admin manages courses, lessons, sections, sentence resources, audio URLs, CVR Ω
 - **FR-005**: System MUST allow learners to join by share link or room code with display name and anonymous identity.
 - **FR-006**: System MUST maintain room membership and expose roster to Teacher Host.
 - **FR-007**: System MUST allow Teacher Host to open, close, advance, and finish rounds.
-- **FR-008**: System MUST snapshot capture mode, assigned learner, CCI X, CVR Ω, and opened time per round.
-- **FR-009**: System MUST display sentence text, prompt EN/VI, audio EN/VI availability, round status, and learner eligibility.
+- **FR-008**: System MUST snapshot capture mode, assigned learner, CCI X, CVR Ω, opened time, audio language selection, and sequence index per round.
+- **FR-009**: System MUST display full sentence text/prompt EN/VI, sentence code, audio EN/VI availability, current index/total, and playback controls to Teacher Host; learner screens MUST display sentence code, round status, and eligibility without exposing full sentence text.
 - **FR-010**: System MUST provide Red, Yellow, and Green response buttons mapped by default to 0, 1, and 2.
 - **FR-011**: System MUST prevent ineligible, duplicate, or closed-round responses on UI and persistence paths.
 - **FR-012**: System MUST calculate and store reflection time for every captured response.
 - **FR-013**: System MUST calculate simple scoring as CCI = CCI X × Learner Performance Y and CPD = CCI × CVR Ω.
 - **FR-014**: System MUST store scoring snapshots on every response.
 - **FR-015**: System MUST update learner progress summaries.
-- **FR-016**: System MUST provide Admin screens for resources, CVR Ω, approval status, and CCI standards.
+- **FR-016**: System MUST provide Admin screens for resources, CVR Ω, approval status, CCI standards, missing-audio status, and session/learner analytics dashboards.
 - **FR-017**: System MUST require confirmation before Admin batch actions.
+- **FR-021**: System MUST provide Teacher audio controls for EN/VI source selection, replay, stop, playback-rate guardrails, and optional auto-play when opening/advancing a round.
+- **FR-022**: System MUST provide Teacher keyboard shortcuts for replay/stop/advance that are disabled while typing in form fields and only advance automatically after the current round has a captured response or explicit teacher confirmation.
+- **FR-023**: System MUST support Teacher resource filtering before session creation and limited in-session filtering of unplayed resources while preserving prior round history.
+- **FR-024**: System MUST store one tracked response per round and support session distributions where a 100-sentence room with 5 learners can produce approximately 20 learner records each under assigned/auto-rotate flows.
+- **FR-025**: System MUST support secure selected-resource and generate-all-missing audio generation for EN/VI resources via server-side job or secure operator script; provider API keys MUST NOT be stored in frontend code or logs, and queued jobs MUST use deterministic storage paths shaped as `sentence-audio/{courseId}/{lessonId}/{sentenceCode}-{language}.mp3`.
 - **FR-018**: System MUST render frontend using centralized design tokens from `DESIGN.md`, supporting Theme 1 calm classroom console, active Theme 2 Bauhaus classroom poster, selectable Theme 3 CHUNKS Modular Learning Aesthetic, and selectable Theme 4 Craft Minimal Chunking.
 - **FR-019**: System MUST provide loading, empty, error, waiting, assigned, observing, captured, already-responded, and round-closed states.
 - **FR-020**: System MUST include pre-deploy workflow with commit/tag, preview/canary, rollback, restore-path, and post-deploy gates.

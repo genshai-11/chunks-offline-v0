@@ -82,17 +82,39 @@
 - [x] T046 [US3] Integrate progress summaries into LearnerRoomPage and TeacherRoomPage
 - [x] T047 [US3] Validate 2-second visible update target in frontend/tests/e2e/scoring-progress.spec.ts
 
+## Phase 5A: Room Session Playback, Keyboard, and Learner Display Refinement
+**Goal**: Align live-room behavior with the classroom audio flow from `CHUNKS-MIRROR-SOUND`, keep learner screens code-only, and make teacher session control practical for 100-resource rooms.
+**Independent Test**: Teacher sees current index/total, can select/replay/stop EN/VI audio, advances by keyboard only after a captured response, and learner screen shows sentence code without full prompt text.
+- [x] T086 [P] Add browser audio playback adapter and unit tests in frontend/src/features/live-room/audioPlayback.ts and frontend/tests/unit/audio-playback.test.ts
+- [x] T087 [P] Add Teacher audio controls component for EN/VI/none selection, replay, stop, audio availability, and playback error state in frontend/src/features/teacher/components/TeacherAudioControls.tsx
+- [x] T088 [US1] Integrate audio controls into TeacherRoomPage so open/advance can optionally auto-play selected current/next sentence audio without mutating response history
+- [x] T089 [US1] Add current index / total resources and next sentence code/audio preview to CurrentSentenceWindow and TeacherRoomPage
+- [x] T090 [US1] Add teacher keyboard shortcut handler for replay, stop, and advance; ignore shortcuts in form fields and require captured response or skip confirmation before advance
+- [x] T091 [US2] Update LearnerRoomPage to show sentence_code, room/round status, eligibility, and controls without rendering text_en/text_vi/text_prompt
+- [x] T092 [P] Add integration tests for learner code-only display and teacher sequence/audio UI in frontend/tests/integration/room-session-playback.test.tsx
+- [x] T093 [P] Add E2E coverage for keyboard advance after captured response and current index / total progression in frontend/tests/e2e/teacher-keyboard-audio.spec.ts
+- [x] T094 [US1] Support limited in-session resource filtering for unplayed resources while preserving completed round history and snapshot order
+- [x] T095 [US1] Add assigned/auto-rotate learner distribution helper and validation for 100-resource / 5-learner sessions
+
 ## Phase 6: User Story 4 - Admin prepares resources and CCI standards (Priority: P4)
-**Independent Test**: Admin creates/updates one approved sentence resource and one active CCI card; teacher setup can select both.
-- [ ] T048 [P] [US4] Add Admin resource manager integration test in frontend/tests/integration/admin-resource-manager.test.tsx
-- [ ] T049 [P] [US4] Add Admin CCI manager integration test in frontend/tests/integration/admin-cci-manager.test.tsx
-- [ ] T050 [P] [US4] Create Admin workspace page in frontend/src/features/admin/AdminWorkspacePage.tsx
-- [ ] T051 [P] [US4] Create Resource Manager components in frontend/src/features/admin/resources/
-- [ ] T052 [P] [US4] Create CCI Standard Manager components in frontend/src/features/admin/cci/
-- [ ] T053 [US4] Implement Admin resource service in frontend/src/features/admin/resources/resourceService.ts
-- [ ] T054 [US4] Implement Admin CCI service in frontend/src/features/admin/cci/cciService.ts
-- [ ] T055 [US4] Add batch-action confirmation dialog in frontend/src/features/admin/components/ConfirmBatchActionDialog.tsx
-- [ ] T056 [US4] Wire Admin route `/admin` in frontend/src/routes/AppRoutes.tsx
+**Independent Test**: Admin creates/updates one approved sentence resource, CVR value, generated audio URL, and active CCI card; teacher setup can select them and Admin analytics can review session/learner results.
+- [x] T048 [P] [US4] Add Admin resource manager integration test in frontend/tests/integration/admin-resource-manager.test.tsx
+- [x] T049 [P] [US4] Add Admin CCI manager integration test in frontend/tests/integration/admin-cci-manager.test.tsx
+- [x] T050 [P] [US4] Create Admin workspace page in frontend/src/features/admin/AdminWorkspacePage.tsx
+- [x] T051 [P] [US4] Create Resource Manager components in frontend/src/features/admin/resources/
+- [x] T052 [P] [US4] Create CCI Standard Manager components in frontend/src/features/admin/cci/
+- [x] T053 [US4] Implement Admin resource service in frontend/src/features/admin/resources/resourceService.ts
+- [x] T054 [US4] Implement Admin CCI service in frontend/src/features/admin/cci/cciService.ts
+- [x] T055 [US4] Add batch-action confirmation dialog in frontend/src/features/admin/components/ConfirmBatchActionDialog.tsx
+- [x] T056 [US4] Wire Admin route `/admin` in frontend/src/routes/AppRoutes.tsx
+- [x] T096 [P] [US4] Add CVR manager integration test and components in frontend/tests/integration/admin-cvr-manager.test.tsx and frontend/src/features/admin/cvr/
+- [x] T097 [US4] Implement Admin CVR service for list/create/update/archive active CVR values in frontend/src/features/admin/cvr/cvrService.ts
+- [x] T098 [P] [US4] Add missing audio generation status test and Resource Manager controls for missing audio_en_url/audio_vi_url filters
+- [x] T099 [US4] Implement secure audio generation trigger/status service that uses server-side job or secure operator script semantics and never exposes provider API keys in frontend code
+- [x] T100 [P] [US4] Add Admin session analytics integration test in frontend/tests/integration/admin-session-analytics.test.tsx
+- [x] T101 [US4] Create Admin session analytics dashboard components for room/session and learner filters in frontend/src/features/admin/analytics/
+- [x] T102 [US4] Implement analytics service over rooms, rounds, responses, and progress summaries in frontend/src/features/admin/analytics/analyticsService.ts
+- [x] T103 [US4] Add generate-all-missing audio queue action with deterministic `sentence-audio/{courseId}/{lessonId}/{sentenceCode}-{language}.mp3` storage path naming in frontend/src/features/admin/resources/
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 - [x] T067 Add Theme 2 Bauhaus documentation and activate centralized Bauhaus frontend theme option
@@ -111,11 +133,12 @@
 - [ ] T066 Complete post-deploy verification checklist in specs/001-offline-live-room-frontend/pre-deploy-workflow.md
 
 ## Dependencies & Execution Order
-- Setup → Foundational → US1 MVP → US2 → US3 → US4 → Polish/Release.
+- Setup → Foundational → US1 MVP → US2 → US3 → Phase 5A playback/session refinement → US4 → Polish/Release.
 - US1 can start after Foundation with seeded resources.
 - US2 requires room/round contract from US1 for full E2E validation.
 - US3 requires accepted response contract from US2.
-- US4 can run later because seeded MVP data supports early stories.
+- Phase 5A depends on US1/US2/US3 room, response, and progress primitives and should complete before final classroom demo.
+- US4 can run later because seeded/imported MVP data and secure operator audio scripts support early stories.
 
 ## Parallel Opportunities
 - T003-T007 after T002.
@@ -123,15 +146,17 @@
 - US1 page/component tasks T021-T022 and T025-T026.
 - US2 page/component tasks T032-T033 and T036-T037.
 - US3 display components T042-T044.
-- US4 Resource and CCI managers T051-T052.
+- Phase 5A component/test work T086-T087 and T092 can run before integration tasks T088-T091.
+- US4 Resource, CCI, CVR, audio status, and analytics managers T051-T052, T096, T098, and T100-T101.
 
 ## Implementation Strategy
 ### MVP First
 1. Complete Phase 1 and Phase 2.
 2. Complete US1 Teacher Room Control.
 3. Complete minimal US2 Learner join/response path.
-4. Validate teacher opens round → learner responds → teacher closes round.
-5. Stop and demo before Admin management depth.
+4. Complete Phase 5A audio/keyboard/session refinement so Teacher can run a 100-resource class with code-only learner screens.
+5. Validate teacher opens round → audio plays → learner responds → keyboard advances → progress updates.
+6. Stop and demo before Admin management depth.
 
 ## Notes
 - Release tasks are mandatory before production deploy.

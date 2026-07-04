@@ -17,6 +17,7 @@ import { assertSupabaseConfig, supabase as defaultSupabase } from '../../lib/sup
 export interface TeacherRoomState {
   room: PracticeRoom
   roster: TeacherRosterMember[]
+  rounds: RoomRound[]
   currentRound: RoomRound | null
   currentSentence: SentenceResource | null
   availableSentences: SentenceResource[]
@@ -41,6 +42,13 @@ export interface OpenRoundInput {
   openedBy?: string
 }
 
+export interface ResolveAssignedLearnerInput {
+  captureMode: ResponseCaptureMode
+  selectedLearnerId: UUID | null
+  roster: TeacherRosterMember[]
+  rounds: RoomRound[]
+}
+
 export async function loadTeacherRoomState(
   roomCode: string,
   { client = defaultSupabase }: RoundServiceOptions = {},
@@ -52,23 +60,27 @@ export async function loadTeacherRoomState(
   if (!roomResult.data) throw new Error(`Room ${roomCode} was not found.`)
 
   const room = roomResult.data as PracticeRoom
+  const snapshotIds = room.snapshot_sentence_resource_ids.length
+    ? room.snapshot_sentence_resource_ids
+    : ['00000000-0000-0000-0000-000000000000']
+
   const [rosterResult, roundsResult, cciCardsResult, resourcesResult] = await Promise.all([
     client.from('room_memberships').select('*, learner:learners(*)').eq('room_id', room.id).order('joined_at'),
-    client.from('room_rounds').select('*').eq('room_id', room.id).order('round_index', { ascending: false }).limit(1),
+    client.from('room_rounds').select('*').eq('room_id', room.id).order('round_index', { ascending: true }),
     client.from('cci_standard_cards').select('*').eq('active', true).order('label'),
-    client
-      .from('sentence_resources')
-      .select('*')
-      .in('id', room.snapshot_sentence_resource_ids.length ? room.snapshot_sentence_resource_ids : ['00000000-0000-0000-0000-000000000000'])
-      .order('order_index'),
+    client.from('sentence_resources').select('*').in('id', snapshotIds),
   ])
 
   for (const result of [rosterResult, roundsResult, cciCardsResult, resourcesResult]) {
     if (result.error) throw mapSupabaseError(result.error)
   }
 
-  const currentRound = ((roundsResult.data ?? [])[0] ?? null) as RoomRound | null
-  const availableSentences = (resourcesResult.data ?? []) as SentenceResource[]
+  const rounds = (roundsResult.data ?? []) as RoomRound[]
+  const currentRound = rounds.at(-1) ?? null
+  const resourcesById = new Map(((resourcesResult.data ?? []) as SentenceResource[]).map((sentence) => [sentence.id, sentence]))
+  const availableSentences = room.snapshot_sentence_resource_ids
+    .map((sentenceId) => resourcesById.get(sentenceId))
+    .filter((sentence): sentence is SentenceResource => Boolean(sentence))
   const currentSentence = currentRound
     ? availableSentences.find((sentence) => sentence.id === currentRound.sentence_resource_id) ?? null
     : null
@@ -76,6 +88,7 @@ export async function loadTeacherRoomState(
   return {
     room,
     roster: (rosterResult.data ?? []) as TeacherRosterMember[],
+    rounds,
     currentRound,
     currentSentence,
     availableSentences,
@@ -94,8 +107,8 @@ export async function openRound(
   const room = roomResult.data as PracticeRoom
 
   if (room.status === 'finished') throw new Error('Cannot open a round for a finished room.')
-  if (input.captureMode === 'assigned' && !input.assignedLearnerId) {
-    throw new Error('Assigned mode requires an active learner before opening the round.')
+  if (requiresAssignedLearner(input.captureMode) && !input.assignedLearnerId) {
+    throw new Error('Assigned and auto-rotate modes require an active learner before opening the round.')
   }
 
   const existingOpenResult = await client
@@ -200,6 +213,26 @@ export async function finishRoom(roomId: UUID, { client = defaultSupabase }: Rou
   if (result.error) throw mapSupabaseError(result.error)
 }
 
+export async function updateRoomResourceFilter(
+  state: TeacherRoomState,
+  selectedUpcomingSentenceIds: UUID[],
+  { client = defaultSupabase }: RoundServiceOptions = {},
+): Promise<UUID[]> {
+  assertSupabaseConfig()
+
+  const nextSnapshotSentenceIds = computeFilteredSnapshotSentenceIds(state, selectedUpcomingSentenceIds)
+  const result = await client
+    .from('practice_rooms')
+    .update({
+      snapshot_sentence_resource_ids: nextSnapshotSentenceIds,
+      scope_refreshed_at: new Date().toISOString(),
+    })
+    .eq('id', state.room.id)
+
+  if (result.error) throw mapSupabaseError(result.error)
+  return nextSnapshotSentenceIds
+}
+
 export function getNextSentence(state: TeacherRoomState): SentenceResource | null {
   if (!state.currentRound) return state.availableSentences[0] ?? null
 
@@ -207,4 +240,95 @@ export function getNextSentence(state: TeacherRoomState): SentenceResource | nul
     (sentence) => sentence.id === state.currentRound?.sentence_resource_id,
   )
   return state.availableSentences[currentIndex + 1] ?? null
+}
+
+export function getLockedSentenceIds(state: TeacherRoomState): UUID[] {
+  const lockedIds = new Set<UUID>()
+  const orderedIds: UUID[] = []
+
+  for (const round of state.rounds) {
+    if (!lockedIds.has(round.sentence_resource_id)) {
+      lockedIds.add(round.sentence_resource_id)
+      orderedIds.push(round.sentence_resource_id)
+    }
+  }
+
+  return orderedIds
+}
+
+export function getUnplayedSentences(state: TeacherRoomState): SentenceResource[] {
+  const lockedIds = new Set(getLockedSentenceIds(state))
+  return state.availableSentences.filter((sentence) => !lockedIds.has(sentence.id))
+}
+
+export function computeFilteredSnapshotSentenceIds(
+  state: TeacherRoomState,
+  selectedUpcomingSentenceIds: UUID[],
+): UUID[] {
+  const lockedIds = new Set(getLockedSentenceIds(state))
+  const upcomingIds = new Set(getUnplayedSentences(state).map((sentence) => sentence.id))
+  const selectedUpcomingIds = new Set(selectedUpcomingSentenceIds)
+
+  for (const selectedId of selectedUpcomingIds) {
+    if (!upcomingIds.has(selectedId)) {
+      throw new Error('Only unplayed upcoming resources can be changed during a live room.')
+    }
+  }
+
+  const nextIds = state.room.snapshot_sentence_resource_ids.filter(
+    (sentenceId) => lockedIds.has(sentenceId) || selectedUpcomingIds.has(sentenceId),
+  )
+
+  for (const lockedId of lockedIds) {
+    if (!nextIds.includes(lockedId)) nextIds.push(lockedId)
+  }
+
+  return nextIds
+}
+
+export function requiresAssignedLearner(captureMode: ResponseCaptureMode): boolean {
+  return captureMode === 'assigned' || captureMode === 'auto_rotate'
+}
+
+export function getEligibleRosterLearners(roster: TeacherRosterMember[]): TeacherRosterMember[] {
+  return roster.filter((member) => member.can_answer && member.presence_status === 'online')
+}
+
+export function chooseAutoRotateLearner(roster: TeacherRosterMember[], rounds: RoomRound[]): UUID | null {
+  const eligibleLearners = getEligibleRosterLearners(roster)
+  if (eligibleLearners.length === 0) return null
+
+  const eligibleIds = eligibleLearners.map((member) => member.learner_id)
+  const eligibleIdSet = new Set(eligibleIds)
+  const assignmentCounts = new Map<UUID, number>(eligibleIds.map((learnerId) => [learnerId, 0]))
+
+  for (const round of rounds) {
+    if (round.assigned_learner_id && eligibleIdSet.has(round.assigned_learner_id)) {
+      assignmentCounts.set(round.assigned_learner_id, (assignmentCounts.get(round.assigned_learner_id) ?? 0) + 1)
+    }
+  }
+
+  const minimumAssignments = Math.min(...eligibleIds.map((learnerId) => assignmentCounts.get(learnerId) ?? 0))
+  const candidateIds = new Set(
+    eligibleIds.filter((learnerId) => (assignmentCounts.get(learnerId) ?? 0) === minimumAssignments),
+  )
+  const lastAssignedLearnerId = [...rounds]
+    .reverse()
+    .find((round) => round.assigned_learner_id && eligibleIdSet.has(round.assigned_learner_id))?.assigned_learner_id
+
+  if (!lastAssignedLearnerId) return eligibleIds.find((learnerId) => candidateIds.has(learnerId)) ?? null
+
+  const lastAssignedIndex = eligibleIds.indexOf(lastAssignedLearnerId)
+  for (let offset = 1; offset <= eligibleIds.length; offset += 1) {
+    const candidateId = eligibleIds[(lastAssignedIndex + offset) % eligibleIds.length]
+    if (candidateIds.has(candidateId)) return candidateId
+  }
+
+  return eligibleIds.find((learnerId) => candidateIds.has(learnerId)) ?? null
+}
+
+export function resolveAssignedLearnerId(input: ResolveAssignedLearnerInput): UUID | null {
+  if (input.captureMode === 'first_responder') return null
+  if (input.captureMode === 'assigned') return input.selectedLearnerId
+  return chooseAutoRotateLearner(input.roster, input.rounds)
 }

@@ -1,4 +1,5 @@
 import { ThemeIconToggle, type ThemeName } from '../components/ui/ThemeSwitcher'
+import { AdminWorkspacePage } from '../features/admin/AdminWorkspacePage'
 import { LearnerJoinPage } from '../features/learner/LearnerJoinPage'
 import { TeacherRoomPage } from '../features/teacher/TeacherRoomPage'
 import { TeacherSetupPage } from '../features/teacher/TeacherSetupPage'
@@ -24,13 +25,7 @@ export function AppRoutes({ activeTheme, onThemeChange }: AppRoutesProps) {
 
   switch (route) {
     case 'admin':
-      return (
-        <RoleEntryPage
-          eyebrow="Admin Workspace"
-          themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />}
-          title="Prepare resources and CCI standards."
-        />
-      )
+      return <AdminWorkspacePage themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />} />
     case 'teacher-setup':
       return <TeacherSetupPage themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />} />
     case 'teacher-room':

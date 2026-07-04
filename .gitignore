@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 coverage/
+*.log
 playwright-report/
 test-results/
 *.tsbuildinfo
@@ -19,6 +20,7 @@ NUL
 frontend/.env.local
 frontend/.env.*.local
 supabase/.temp/
+.specify/integrations/.cache/
 
 # Python cache
 __pycache__/

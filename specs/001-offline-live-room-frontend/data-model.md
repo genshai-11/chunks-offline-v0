@@ -12,6 +12,8 @@ erDiagram
     ROUND ||--o| RESPONSE : captures
     ROOM_MEMBERSHIP ||--o{ RESPONSE : submits
     ROOM_MEMBERSHIP ||--o| LEARNER_PROGRESS_SUMMARY : summarizes
+    SENTENCE_RESOURCE ||--o{ AUDIO_GENERATION_JOB : fills_missing_audio
+    ROOM ||--o{ SESSION_ANALYTICS_VIEW : summarizes
 ```
 
 ## Course
@@ -31,7 +33,7 @@ erDiagram
 - `approval_status`: draft / approved / archived
 - `order_index`, `created_at`, `updated_at`
 
-Validation: Teacher scopes can only use approved resources; approved resources require `cvr_value`.
+Validation: Teacher scopes can only use approved resources; approved resources require `cvr_value`. Teacher screens may display full EN/VI prompt text; learner live-room screens display only `sentence_code`, status, and eligibility while relying on teacher-controlled classroom audio.
 
 ## CCI Category
 - `id`, `label`, `description`, `status`
@@ -60,8 +62,9 @@ State: lobby → round_open → round_closed → round_open; lobby/round_closed 
 - `status`: draft / open / closed
 - `response_capture_mode_snapshot`, `assigned_learner_id`, `captured_learner_id`
 - `cci_standard_x_snapshot`, `cvr_value_snapshot`, `opened_at`, `closed_at`
+- Playback UI snapshot: selected audio language (`en` / `vi` / `none`), current sequence index, and optional playback status are client/UI state unless persisted by a later migration.
 
-Validation: open rounds require scoring/CVR snapshots; assigned mode requires assigned learner before learner response.
+Validation: open rounds require scoring/CVR snapshots; assigned mode requires assigned learner before learner response. Keyboard advance is allowed only after a finalized response exists for the round or after explicit teacher skip confirmation.
 
 ## Response
 - `id`, `room_id`, `round_id`, `captured_learner_id`
@@ -75,6 +78,19 @@ Validation: MVP allows at most one tracked response per round; accepted only whi
 
 ## Learner Progress Summary
 Derived by `room_id` + `learner_id`: `response_count`, `red_count`, `yellow_count`, `green_count`, `highest_cpd`, `total_cpd`, `average_cpd`, `average_reflection_seconds`, `last_response_at`.
+
+## Audio Generation Job
+- `id`, `resource_id`, `language`: en / vi
+- `status`: queued / running / succeeded / failed / skipped
+- `provider`, `model`, `storage_path`, `public_url`
+- `error_message`, `requested_by`, `created_at`, `updated_at`, `completed_at`
+
+Validation: Audio generation must run server-side or by secure operator script. Provider API keys are environment-only and must not be stored in database rows, browser state, or logs. Admin bulk generation queues one job per missing language and stores the intended object location in `storage_path` using `sentence-audio/{courseId}/{lessonId}/{sentenceCode}-{language}.mp3`; the secure worker/operator uploads the file and later writes `public_url` plus the resource `audio_en_url`/`audio_vi_url`.
+
+## Session Analytics View
+Derived by `room_id`, optionally grouped by `learner_id`: room title/code, resource count, completed rounds, response count, color counts, total/average/highest CPD, average reflection seconds, learner distribution, first/last response time.
+
+Validation: Analytics are read-only derived views over durable rooms, rounds, responses, and progress summaries; they must not rewrite scoring history.
 
 ## Scoring Snapshot Rules
 Simple mode:

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ActionDock } from '../../components/layout/ActionDock'
 import { AppShell } from '../../components/layout/AppShell'
@@ -8,6 +8,12 @@ import { Alert } from '../../components/ui/Alert'
 import { Button } from '../../components/ui/Button'
 import { CollapsiblePanel } from '../../components/ui/CollapsiblePanel'
 import { subscribeToRoomState, unsubscribeFromRoomState } from '../../lib/supabase/realtime'
+import {
+  BrowserAudioPlaybackAdapter,
+  getSentenceAudioUrl,
+  isEditableShortcutTarget,
+  type AudioLanguage,
+} from '../live-room/audioPlayback'
 import { CurrentSentenceWindow } from '../live-room/CurrentSentenceWindow'
 import {
   loadRoomProgress,
@@ -19,13 +25,19 @@ import {
   advanceRound,
   closeRound,
   finishRoom,
+  getLockedSentenceIds,
   getNextSentence,
+  getUnplayedSentences,
   loadTeacherRoomState,
   openRound,
+  requiresAssignedLearner,
+  resolveAssignedLearnerId,
+  updateRoomResourceFilter,
   type TeacherRoomState,
 } from '../live-room/roundService'
 import { CapturedResponsePanel } from './components/CapturedResponsePanel'
 import { ShareLinkCard } from './components/ShareLinkCard'
+import { TeacherAudioControls } from './components/TeacherAudioControls'
 import { TeacherRoster } from './components/TeacherRoster'
 
 interface TeacherRoomPageProps {
@@ -38,14 +50,29 @@ function getErrorMessage(error: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
+function getCurrentSentenceIndex(state: TeacherRoomState | null): number {
+  if (!state) return 0
+  const currentSentenceId = state.currentRound?.sentence_resource_id ?? getNextSentence(state)?.id
+  if (!currentSentenceId) return 0
+  const index = state.availableSentences.findIndex((sentence) => sentence.id === currentSentenceId)
+  return index >= 0 ? index + 1 : 0
+}
+
 export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps) {
   const [state, setState] = useState<TeacherRoomState | null>(null)
   const [assignedLearnerId, setAssignedLearnerId] = useState<string | null>(null)
   const [selectedCciCardId, setSelectedCciCardId] = useState<string>('')
+  const [selectedUpcomingSentenceIds, setSelectedUpcomingSentenceIds] = useState<string[]>([])
+  const [resourceFilterMessage, setResourceFilterMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isWorking, setIsWorking] = useState(false)
   const [progressState, setProgressState] = useState<RoomProgressState | null>(null)
+  const [audioLanguage, setAudioLanguage] = useState<AudioLanguage>('en')
+  const [autoPlayAudio, setAutoPlayAudio] = useState(false)
+  const [audioError, setAudioError] = useState<string | null>(null)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+  const playbackRef = useRef<BrowserAudioPlaybackAdapter | null>(null)
 
   const refreshProgress = useCallback(async (roomId: string) => {
     const nextProgress = await loadRoomProgress(roomId)
@@ -56,6 +83,7 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
   const refreshState = useCallback(async () => {
     const nextState = await loadTeacherRoomState(roomCode)
     setState(nextState)
+    setSelectedUpcomingSentenceIds(getUnplayedSentences(nextState).map((sentence) => sentence.id))
     setAssignedLearnerId((current) => current ?? nextState.roster[0]?.learner_id ?? null)
     setSelectedCciCardId((current) => {
       if (current) return current
@@ -119,17 +147,67 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
 
   const nextSentence = useMemo(() => (state ? getNextSentence(state) : null), [state])
   const selectedCci = state?.cciCards.find((card) => card.id === selectedCciCardId) ?? null
-  const assignedMode = state?.room.default_response_capture_mode === 'assigned'
+  const displaySentence = state?.currentSentence ?? nextSentence ?? null
+  const currentSentenceIndex = useMemo(() => getCurrentSentenceIndex(state), [state])
+  const totalResources = state?.availableSentences.length ?? 0
+  const lockedSentenceIds = useMemo(() => (state ? getLockedSentenceIds(state) : []), [state])
+  const lockedSentenceIdSet = useMemo(() => new Set(lockedSentenceIds), [lockedSentenceIds])
+  const lockedSentences = useMemo(
+    () => state?.availableSentences.filter((sentence) => lockedSentenceIdSet.has(sentence.id)) ?? [],
+    [lockedSentenceIdSet, state?.availableSentences],
+  )
+  const upcomingSentences = useMemo(() => (state ? getUnplayedSentences(state) : []), [state])
+  const requiresAssignedRound = state ? requiresAssignedLearner(state.room.default_response_capture_mode) : false
+  const nextAssignedLearnerId = state
+    ? resolveAssignedLearnerId({
+        captureMode: state.room.default_response_capture_mode,
+        selectedLearnerId: assignedLearnerId,
+        roster: state.roster,
+        rounds: state.rounds,
+      })
+    : null
+  const nextAssignedLearnerName = state?.roster.find((member) => member.learner_id === nextAssignedLearnerId)?.learner?.display_name
+  const hasCapturedCurrentRound = Boolean(
+    state?.currentRound && progressState?.responses.some((response) => response.round_id === state.currentRound?.id),
+  )
   const canOpen = Boolean(
     state &&
       nextSentence &&
       selectedCciCardId &&
       state.room.status !== 'finished' &&
       state.currentRound?.status !== 'open' &&
-      (!assignedMode || assignedLearnerId),
+      (!requiresAssignedRound || nextAssignedLearnerId),
   )
   const canClose = Boolean(state?.currentRound?.status === 'open')
   const canAdvance = Boolean(state && nextSentence && state.room.status !== 'finished')
+
+  function getPlayback() {
+    playbackRef.current ??= new BrowserAudioPlaybackAdapter()
+    return playbackRef.current
+  }
+
+  async function playSentenceAudio(sentence = displaySentence) {
+    setAudioError(null)
+    const url = getSentenceAudioUrl(sentence, audioLanguage)
+    if (!url) {
+      setAudioError('Selected audio track is unavailable for this sentence.')
+      setIsAudioPlaying(false)
+      return
+    }
+
+    try {
+      await getPlayback().playUrl(url)
+      setIsAudioPlaying(getPlayback().isPlaying())
+    } catch (playError) {
+      setAudioError(getErrorMessage(playError))
+      setIsAudioPlaying(false)
+    }
+  }
+
+  function stopSentenceAudio() {
+    getPlayback().stop()
+    setIsAudioPlaying(false)
+  }
 
   async function runAction(action: () => Promise<unknown>) {
     setIsWorking(true)
@@ -144,19 +222,35 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
     }
   }
 
+  function resolveNextRoundLearnerId(currentState: TeacherRoomState): string | null {
+    const resolvedLearnerId = resolveAssignedLearnerId({
+      captureMode: currentState.room.default_response_capture_mode,
+      selectedLearnerId: assignedLearnerId,
+      roster: currentState.roster,
+      rounds: currentState.rounds,
+    })
+
+    if (requiresAssignedLearner(currentState.room.default_response_capture_mode) && !resolvedLearnerId) {
+      throw new Error('No eligible learner is available for this assigned/auto-rotate round.')
+    }
+
+    return resolvedLearnerId
+  }
+
   function handleOpenRound() {
     if (!state || !nextSentence) return
-    void runAction(() =>
-      openRound({
+    void runAction(async () => {
+      await openRound({
         roomId: state.room.id,
         sentenceResourceId: nextSentence.id,
-        assignedLearnerId,
+        assignedLearnerId: resolveNextRoundLearnerId(state),
         cciStandardCardId: selectedCciCardId,
         captureMode: state.room.default_response_capture_mode,
         scoringMode: state.room.scoring_mode,
         openedBy: state.room.host_name ?? 'Teacher Host',
-      }),
-    )
+      })
+      if (autoPlayAudio) await playSentenceAudio(nextSentence)
+    })
   }
 
   function handleCloseRound() {
@@ -166,15 +260,25 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
 
   function handleAdvanceRound() {
     if (!state) return
-    void runAction(() =>
-      advanceRound(state, {
-        assignedLearnerId,
+    void runAction(async () => {
+      await advanceRound(state, {
+        assignedLearnerId: resolveNextRoundLearnerId(state),
         cciStandardCardId: selectedCciCardId,
         captureMode: state.room.default_response_capture_mode,
         scoringMode: state.room.scoring_mode,
         openedBy: state.room.host_name ?? 'Teacher Host',
-      }),
-    )
+      })
+      if (autoPlayAudio && nextSentence) await playSentenceAudio(nextSentence)
+    })
+  }
+
+  function handleKeyboardAdvance() {
+    if (!canAdvance || isWorking) return
+    if (state?.currentRound?.status === 'open' && !hasCapturedCurrentRound) {
+      const confirmed = window.confirm('Advance without a captured response for this round?')
+      if (!confirmed) return
+    }
+    handleAdvanceRound()
   }
 
   function handleFinishRoom() {
@@ -184,8 +288,51 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
     void runAction(() => finishRoom(state.room.id))
   }
 
+  function toggleUpcomingSentence(sentenceId: string, checked: boolean) {
+    setSelectedUpcomingSentenceIds((current) => {
+      if (checked) return current.includes(sentenceId) ? current : [...current, sentenceId]
+      return current.filter((currentId) => currentId !== sentenceId)
+    })
+  }
+
+  function handleSaveResourceFilter() {
+    if (!state) return
+    void runAction(async () => {
+      await updateRoomResourceFilter(state, selectedUpcomingSentenceIds)
+      setResourceFilterMessage(
+        `Upcoming filter saved. ${lockedSentences.length} played/current resources were preserved and ${selectedUpcomingSentenceIds.length} upcoming resources remain.`,
+      )
+    })
+  }
+
+  useEffect(() => {
+    return () => playbackRef.current?.stop()
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isEditableShortcutTarget(event.target)) return
+      if (event.key.toLowerCase() === 'r') {
+        event.preventDefault()
+        void playSentenceAudio()
+      }
+      if (event.key.toLowerCase() === 's' || event.key === 'Escape') {
+        event.preventDefault()
+        stopSentenceAudio()
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        handleKeyboardAdvance()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  })
+
   const roomStatus = state?.room.status ?? 'loading'
   const rosterSummary = `${state?.roster.length ?? 0} learners`
+  const resourceFilterSummary = `${selectedUpcomingSentenceIds.length}/${upcomingSentences.length} upcoming`
   const roundSummary = state?.currentRound ? `Round ${state.currentRound.round_index} · ${state.currentRound.status}` : 'No round open'
 
   return (
@@ -204,12 +351,31 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
     >
       {isLoading ? <Alert className="mb-5" title="Loading live room">Fetching room, roster, and current round.</Alert> : null}
       {error ? <Alert className="mb-5" tone="error" title="Live room action failed">{error}</Alert> : null}
+      {resourceFilterMessage ? <Alert className="mb-5" title="Resource filter updated">{resourceFilterMessage}</Alert> : null}
 
       {state ? (
         <WorkspaceLayout
           primary={
             <>
-              <CurrentSentenceWindow round={state.currentRound} sentence={state.currentSentence} nextSentence={nextSentence} />
+              <CurrentSentenceWindow
+                currentIndex={currentSentenceIndex}
+                nextSentence={nextSentence}
+                round={state.currentRound}
+                sentence={state.currentSentence}
+                totalResources={totalResources}
+              />
+
+              <TeacherAudioControls
+                audioLanguage={audioLanguage}
+                autoPlay={autoPlayAudio}
+                error={audioError}
+                isPlaying={isAudioPlaying}
+                onAudioLanguageChange={setAudioLanguage}
+                onAutoPlayChange={setAutoPlayAudio}
+                onReplay={() => void playSentenceAudio()}
+                onStop={stopSentenceAudio}
+                sentence={displaySentence}
+              />
 
               <CapturedResponsePanel
                 lastResponse={progressState?.lastCapturedResponse ?? null}
@@ -222,7 +388,11 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
                 meta={
                   <span>
                     <strong className="text-chunks-ink">{roundSummary}</strong>
-                    <span className="block">{assignedMode && !assignedLearnerId ? 'Choose an active learner before opening an assigned round.' : 'Controls follow the current durable room state.'}</span>
+                    <span className="block">
+                      {requiresAssignedRound && !nextAssignedLearnerId
+                        ? 'Choose or wait for an eligible learner before opening this assigned/auto-rotate round.'
+                        : `Shortcuts: R replay, S/Esc stop, → advance after response.${nextAssignedLearnerName ? ` Next learner: ${nextAssignedLearnerName}.` : ''}`}
+                    </span>
                   </span>
                 }
               >
@@ -257,6 +427,7 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
                   <div className="rounded-2xl bg-chunks-soft p-4 text-sm leading-6 text-chunks-body">
                     <strong className="text-chunks-ink">Mode:</strong> {state.room.default_response_capture_mode} · {state.room.scoring_mode}
                     {selectedCci ? <span> · {selectedCci.label}</span> : null}
+                    {nextAssignedLearnerName ? <span className="block">Next assigned learner: {nextAssignedLearnerName}</span> : null}
                   </div>
                 </div>
               </CollapsiblePanel>
@@ -273,6 +444,76 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
                   members={state.roster}
                   onAssignedLearnerChange={setAssignedLearnerId}
                 />
+              </CollapsiblePanel>
+              <CollapsiblePanel panelId="teacher-room-resource-filter" summary={resourceFilterSummary} title="Upcoming resources">
+                <div className="space-y-4 text-sm text-chunks-body">
+                  <p>
+                    Filter only unplayed resources for the rest of this room. Completed/current rounds stay locked in the
+                    original snapshot order.
+                  </p>
+
+                  {lockedSentences.length ? (
+                    <div className="rounded-2xl bg-chunks-soft p-3">
+                      <p className="font-semibold text-chunks-ink">Locked history</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-chunks-muted">played/current</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {lockedSentences.map((sentence) => (
+                          <span key={sentence.id} className="rounded-full border border-chunks-hairline bg-white px-3 py-1 font-semibold text-chunks-ink">
+                            {sentence.sentence_code}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      disabled={upcomingSentences.length === 0 || isWorking}
+                      onClick={() => setSelectedUpcomingSentenceIds(upcomingSentences.map((sentence) => sentence.id))}
+                      type="button"
+                      variant="secondary"
+                    >
+                      Select all upcoming
+                    </Button>
+                    <Button
+                      disabled={upcomingSentences.length === 0 || isWorking}
+                      onClick={() => setSelectedUpcomingSentenceIds([])}
+                      type="button"
+                      variant="secondary"
+                    >
+                      Clear upcoming
+                    </Button>
+                  </div>
+
+                  {upcomingSentences.length ? (
+                    <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                      {upcomingSentences.map((sentence) => (
+                        <label
+                          className="flex min-h-12 items-center gap-3 rounded-2xl border border-chunks-hairline bg-white px-3 py-2"
+                          key={sentence.id}
+                        >
+                          <input
+                            aria-label={`Include ${sentence.sentence_code}`}
+                            checked={selectedUpcomingSentenceIds.includes(sentence.id)}
+                            className="h-5 w-5 accent-[var(--chunks-accent)]"
+                            onChange={(event) => toggleUpcomingSentence(sentence.id, event.target.checked)}
+                            type="checkbox"
+                          />
+                          <span>
+                            <strong className="text-chunks-ink">{sentence.sentence_code}</strong>
+                            <span className="block text-xs text-chunks-muted">Upcoming · order {sentence.order_index}</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-2xl bg-chunks-soft p-3">No unplayed resources remain in this room snapshot.</p>
+                  )}
+
+                  <Button disabled={isWorking} onClick={handleSaveResourceFilter} type="button">
+                    Save upcoming filter
+                  </Button>
+                </div>
               </CollapsiblePanel>
             </>
           }

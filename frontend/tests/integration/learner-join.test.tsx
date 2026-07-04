@@ -6,6 +6,7 @@ import type { Learner, PracticeRoom, RoomMembership } from '../../src/lib/domain
 import { LearnerJoinPage } from '../../src/features/learner/LearnerJoinPage'
 import { joinRoom, loadRoomForJoin } from '../../src/features/learner/learnerJoinService'
 import { loadLearnerRoomState } from '../../src/features/learner/responseService'
+import { loadRoomProgress } from '../../src/features/live-room/progressService'
 
 vi.mock('../../src/features/learner/learnerJoinService', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/features/learner/learnerJoinService')>()
@@ -22,6 +23,16 @@ vi.mock('../../src/features/learner/responseService', () => ({
   loadLearnerRoomState: vi.fn(),
   submitLearnerResponse: vi.fn(),
 }))
+
+vi.mock('../../src/features/live-room/progressService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/features/live-room/progressService')>()
+  return {
+    ...actual,
+    loadRoomProgress: vi.fn(),
+    subscribeToProgressUpdates: vi.fn(() => ({ topic: 'progress' })),
+    unsubscribeFromProgressUpdates: vi.fn(),
+  }
+})
 
 const room: PracticeRoom = {
   id: 'room-1',
@@ -67,6 +78,7 @@ describe('LearnerJoinPage', () => {
     window.localStorage.clear()
     vi.mocked(loadRoomForJoin).mockResolvedValue(room)
     vi.mocked(joinRoom).mockResolvedValue({ learner, membership, room })
+    vi.mocked(loadRoomProgress).mockResolvedValue({ summaries: [], responses: [], lastCapturedResponse: null })
     vi.mocked(loadLearnerRoomState).mockResolvedValue({
       room,
       membership,
@@ -128,7 +140,9 @@ describe('LearnerJoinPage', () => {
     await waitFor(() => {
       expect(joinRoom).toHaveBeenCalledWith({ roomCode: 'ABC123', displayName: 'Lucy Learner' })
     })
-    expect(await screen.findByText('I can answer this sentence.')).toBeInTheDocument()
+    expect(await screen.findByText('S001')).toBeInTheDocument()
+    expect(screen.queryByText('I can answer this sentence.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Tôi có thể trả lời câu này.')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /green/i })).toBeEnabled()
   })
 })
