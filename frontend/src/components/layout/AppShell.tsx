@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { StatusBadge } from '../ui/StatusBadge'
+import { Badge, Card } from '../primitives'
 import { TopNavigation } from './TopNavigation'
 
 interface AppShellProps {
@@ -25,21 +25,36 @@ export function AppShell({
   title,
 }: AppShellProps) {
   return (
-    <main className="theme-shell min-h-[100dvh] bg-chunks-canvas text-chunks-ink">
-      <TopNavigation action={action} statusLabel={statusLabel} themeControl={themeControl} />
-      <section className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 md:py-8">
-        <div className="grid gap-5 border-b border-chunks-hairline pb-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <div>
-            {eyebrow ? <StatusBadge tone="brand">{eyebrow}</StatusBadge> : null}
-            <h1 className="theme-hero-title mt-4 max-w-4xl text-4xl font-normal tracking-tight md:text-6xl">
-              {title}
-            </h1>
-            {description ? <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-chunks-body">{description}</p> : null}
+    <main className="theme-shell min-h-[100dvh] bg-chunks-canvas text-chunks-ink lg:grid lg:grid-cols-[11.75rem_minmax(0,1fr)]">
+      <TopNavigation statusLabel={statusLabel} />
+
+      <div className="min-w-0">
+        <header className="sticky top-0 z-10 border-b border-chunks-hairline bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+          <div className="mx-auto flex w-full max-w-[88rem] items-center justify-between gap-3 px-4 py-3 md:px-5">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                {eyebrow ? <Badge className="rounded-xl px-2.5 py-1 text-[0.68rem]" tone="brand">{eyebrow}</Badge> : null}
+                {statusLabel ? <span className="hidden text-[0.68rem] font-black uppercase tracking-[0.18em] text-chunks-body sm:inline">{statusLabel}</span> : null}
+              </div>
+              <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h1 className="theme-hero-title truncate text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
+                {description ? <p className="max-w-[54ch] truncate text-sm leading-6 text-chunks-body">{description}</p> : null}
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              {action}
+              {themeControl}
+            </div>
           </div>
-          {headerMeta ? <div className="lg:min-w-80">{headerMeta}</div> : null}
-        </div>
-        <div className="py-6">{children}</div>
-      </section>
+        </header>
+
+        <section className="mx-auto w-full max-w-[88rem] px-4 py-4 md:px-5 md:py-5">
+          {headerMeta ? <Card className="mb-4" padding="sm">{headerMeta}</Card> : null}
+          {children}
+        </section>
+      </div>
     </main>
   )
 }
+

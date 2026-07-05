@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -11,27 +11,35 @@ describe('layout dynamic components', () => {
     window.localStorage.clear()
   })
 
-  it('renders route navigation with active Teacher state', () => {
+  it('renders truthful route navigation without fake Users, Settings, or Help destinations', () => {
     render(<TopNavigation pathname="/teacher/setup" statusLabel="Create Room" />)
 
-    expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Teacher' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
-    expect(screen.getByText('Create Room')).toBeInTheDocument()
+    const primaryNav = within(screen.getByRole('navigation', { name: /primary/i }))
+
+    expect(primaryNav.getByRole('link', { name: 'Create Room' })).toHaveAttribute('aria-current', 'page')
+    expect(primaryNav.getByRole('link', { name: 'Live Room' })).toHaveAttribute('href', '/teacher/setup')
+    expect(primaryNav.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/')
+    expect(primaryNav.getByRole('link', { name: 'Library' })).toHaveAttribute('href', '/library')
+    expect(primaryNav.getByRole('link', { name: 'History' })).toHaveAttribute('href', '/history')
+    expect(primaryNav.queryByRole('link', { name: 'Teacher' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Help' })).not.toBeInTheDocument()
+    expect(screen.getAllByText('Create Room').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('cycles through Modular and Craft themes with icon-only toggle', async () => {
+  it('cycles through themes with icon-only toggle', async () => {
     const user = userEvent.setup()
     const onThemeChange = vi.fn()
 
     const { rerender } = render(<ThemeIconToggle activeTheme="bauhaus" onThemeChange={onThemeChange} />)
 
-    await user.click(screen.getByRole('button', { name: /switch to modular theme/i }))
-    expect(onThemeChange).toHaveBeenCalledWith('modular')
-
-    rerender(<ThemeIconToggle activeTheme="modular" onThemeChange={onThemeChange} />)
     await user.click(screen.getByRole('button', { name: /switch to craft theme/i }))
     expect(onThemeChange).toHaveBeenCalledWith('craft')
+
+    rerender(<ThemeIconToggle activeTheme="craft" onThemeChange={onThemeChange} />)
+    await user.click(screen.getByRole('button', { name: /switch to calm theme/i }))
+    expect(onThemeChange).toHaveBeenCalledWith('calm')
   })
 
   it('collapses, expands, and persists panel state', async () => {

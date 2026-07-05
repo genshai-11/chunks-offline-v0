@@ -3,8 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ActionDock } from '../../components/layout/ActionDock'
 import { WorkspaceLayout } from '../../components/layout/WorkspaceLayout'
 import { Alert } from '../../components/ui/Alert'
-import { Card } from '../../components/ui/Card'
-import { StatusBadge } from '../../components/ui/StatusBadge'
+import { Badge, Card } from '../../components/primitives'
 import type { ResponseColor, UUID } from '../../lib/domain/types'
 import { subscribeToRoomState, unsubscribeFromRoomState } from '../../lib/supabase/realtime'
 import {
@@ -35,6 +34,7 @@ export function LearnerRoomPage({ learnerId, roomCode }: LearnerRoomPageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [progressState, setProgressState] = useState<RoomProgressState | null>(null)
   const [submittingColor, setSubmittingColor] = useState<ResponseColor | null>(null)
+  const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'live' | 'error' | 'reconnecting'>('connecting')
 
   const refreshProgress = useCallback(async (roomId: UUID) => {
     const nextProgress = await loadRoomProgress(roomId)
@@ -67,12 +67,14 @@ export function LearnerRoomPage({ learnerId, roomCode }: LearnerRoomPageProps) {
 
   useEffect(() => {
     if (!state?.room.id) return undefined
+    setRealtimeStatus('connecting')
     const channel = subscribeToRoomState({
       roomId: state.room.id,
       onChange: () => {
         void refreshState().catch((subscriptionError: unknown) => setError(getErrorMessage(subscriptionError)))
       },
       onReconnect: async () => {
+        setRealtimeStatus('live')
         await refreshState()
       },
     })
@@ -124,40 +126,52 @@ export function LearnerRoomPage({ learnerId, roomCode }: LearnerRoomPageProps) {
     return <Alert tone="error" title="Room unavailable">{error ?? 'Unable to load this room.'}</Alert>
   }
 
+  // T110: visible realtime status for learner (phone friendly)
+  const realtimeBadge = (
+    <div className="mb-2 text-xs uppercase tracking-[0.16em] text-chunks-body">
+      Realtime: <span className={realtimeStatus === 'live' ? 'font-semibold text-emerald-600' : 'text-amber-600'}>{realtimeStatus}</span>
+    </div>
+  )
+
   const sentence = state.currentSentence
+  const sentenceIdentifier = sentence?.sentence_code ?? 'Waiting for teacher'
   const learnerProgress = progressState?.summaries.find((row) => row.summary.learner_id === learnerId) ?? null
+  const showResponseControls = state.learnerState === 'assigned' && !state.roundHasCapturedResponse
 
   return (
     <WorkspaceLayout
       primary={
         <>
-          <Card variant="dark">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/60">Current sentence code</p>
-                <h2 className="mt-3 font-mono text-4xl font-semibold leading-tight text-white">
-                  {sentence?.sentence_code ?? 'Waiting for teacher'}
+          {realtimeBadge}
+          <Card className="border-l-4 border-l-chunks-red" padding="sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-chunks-body">Current sentence</p>
+                <h2 className="mt-2 font-mono text-5xl font-black leading-none tracking-tight text-chunks-ink sm:text-6xl">
+                  {sentenceIdentifier}
                 </h2>
-                <p className="mt-4 max-w-xl text-base leading-7 text-white/75">
-                  Listen to the classroom audio from your teacher, then answer with Red, Yellow, or Green when you are eligible.
+                <p className="mt-3 max-w-xl text-sm leading-6 text-chunks-body">
+                  Listen to the teacher. When the response window is open, choose one color icon.
                 </p>
               </div>
-              <StatusBadge tone={state.currentRound?.status === 'open' ? 'success' : 'neutral'}>
+              <Badge tone={state.currentRound?.status === 'open' ? 'success' : 'neutral'}>
                 {state.currentRound?.status ?? state.room.status}
-              </StatusBadge>
+              </Badge>
             </div>
           </Card>
 
           <LearnerStateBanner disabledReason={state.disabledReason} learnerState={state.learnerState} />
 
-          <ActionDock label="Respond" meta="One tracked response is allowed for each open Sentence Window.">
-            <ResponseButtons
-              disabledReason={state.disabledReason}
-              learnerState={state.learnerState}
-              onRespond={handleRespond}
-              submittingColor={submittingColor}
-            />
-          </ActionDock>
+          {showResponseControls ? (
+            <ActionDock label="Respond" meta="One tracked response is allowed for each open Sentence Window.">
+              <ResponseButtons
+                disabledReason={state.disabledReason}
+                learnerState={state.learnerState}
+                onRespond={handleRespond}
+                submittingColor={submittingColor}
+              />
+            </ActionDock>
+          ) : null}
 
           {error ? <Alert tone="error" title="Response failed">{error}</Alert> : null}
         </>
@@ -170,6 +184,9 @@ export function LearnerRoomPage({ learnerId, roomCode }: LearnerRoomPageProps) {
               <div className="flex justify-between gap-4"><dt>Room</dt><dd className="font-mono font-semibold text-chunks-ink">{state.room.room_code}</dd></div>
               <div className="flex justify-between gap-4"><dt>Round</dt><dd className="font-mono font-semibold text-chunks-ink">{state.currentRound?.round_index ?? 'Waiting'}</dd></div>
               <div className="flex justify-between gap-4"><dt>Eligibility</dt><dd className="font-semibold text-chunks-ink">{state.learnerState}</dd></div>
+              {state.currentRound?.opened_at && (
+                <div className="flex justify-between gap-4 text-xs text-chunks-body"><dt>Opened</dt><dd>{new Date(state.currentRound.opened_at).toLocaleTimeString()}</dd></div>
+              )}
             </dl>
             {state.existingResponse ? (
               <Alert className="mt-5" tone="success" title="Captured">

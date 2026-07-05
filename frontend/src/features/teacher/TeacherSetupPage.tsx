@@ -5,14 +5,63 @@ import { ActionDock } from '../../components/layout/ActionDock'
 import { AppShell } from '../../components/layout/AppShell'
 import { WorkspaceLayout } from '../../components/layout/WorkspaceLayout'
 import { Alert } from '../../components/ui/Alert'
-import { Button } from '../../components/ui/Button'
 import { CollapsiblePanel } from '../../components/ui/CollapsiblePanel'
+import { Badge, Button, Card } from '../../components/primitives'
 import type { ResponseCaptureMode, ScoringMode, UUID } from '../../lib/domain/types'
 import { countApprovedSentenceResources, createTeacherRoom, loadTeacherSetupData, type TeacherSetupData } from './teacherRoomService'
 
 interface TeacherSetupPageProps {
   onRoomCreated?: (roomCode: string) => void
   themeControl?: ReactNode
+}
+
+const createRoomAreas = [
+  ['Room Idea', 'Name the live room around the class goal.'],
+  ['Scope', 'Choose course, lesson, and included topics.'],
+  ['Readiness', 'Confirm approved resources before launch.'],
+  ['Advanced Options', 'Tune host, CCI, capture, and scoring.'],
+]
+
+interface CreateRoomAreaMapProps {
+  approvedResourceCount: number
+  canCreate: boolean
+  readySummary: string
+  selectedSectionCount: number
+  totalSectionCount: number
+}
+
+function CreateRoomAreaMap({ approvedResourceCount, canCreate, readySummary, selectedSectionCount, totalSectionCount }: CreateRoomAreaMapProps) {
+  return (
+    <section aria-label="Inside this area" className="grid gap-3 md:grid-cols-4">
+      {createRoomAreas.map(([label, description], index) => {
+        const isReadiness = label === 'Readiness'
+        const status = isReadiness
+          ? canCreate
+            ? 'Ready'
+            : approvedResourceCount > 0
+              ? readySummary
+              : 'Needs resources'
+          : label === 'Scope'
+            ? `${selectedSectionCount}/${totalSectionCount} topics`
+            : index === 0
+              ? 'Start here'
+              : 'Optional'
+
+        return (
+          <div className="rounded-2xl border border-chunks-hairline bg-white p-3 shadow-[var(--chunks-shadow-soft)]" key={label}>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-chunks-soft text-xs font-black text-chunks-ink">
+                {index + 1}
+              </span>
+              <Badge tone={isReadiness && canCreate ? 'success' : isReadiness ? 'warning' : 'neutral'}>{status}</Badge>
+            </div>
+            <h2 className="text-sm font-black uppercase tracking-[0.14em] text-chunks-ink">{label}</h2>
+            <p className="mt-1 text-xs leading-5 text-chunks-body">{description}</p>
+          </div>
+        )
+      })}
+    </section>
+  )
 }
 
 function getErrorMessage(error: unknown): string {
@@ -24,6 +73,18 @@ function getSectionIdsForLesson(data: TeacherSetupData | null, lessonId: UUID): 
   return data?.sections.filter((section) => section.lesson_id === lessonId).map((section) => section.id) ?? []
 }
 
+function getDefaultRoomTitleFromLesson(lessonTitle: string | undefined): string {
+  const trimmedTitle = lessonTitle?.trim()
+  if (!trimmedTitle) return 'CHUNKS Mirror Practice'
+
+  const parts = trimmedTitle
+    .split(/\s+[-–—]\s+|\s+[-–—]|[-–—]\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  return parts.at(-1) ?? trimmedTitle
+}
+
 export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPageProps) {
   const [data, setData] = useState<TeacherSetupData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -33,12 +94,13 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
   const [approvedResourceCount, setApprovedResourceCount] = useState(0)
 
   const [title, setTitle] = useState('CHUNKS Mirror Practice')
-  const [hostName, setHostName] = useState('Teacher Host')
+  const [isTitleCustomized, setIsTitleCustomized] = useState(false)
+  const [hostName, setHostName] = useState('Chunker')
   const [courseId, setCourseId] = useState<UUID>('')
   const [lessonId, setLessonId] = useState<UUID>('')
   const [selectedSectionIds, setSelectedSectionIds] = useState<UUID[]>([])
   const [cciStandardCardId, setCciStandardCardId] = useState<UUID>('')
-  const [captureMode, setCaptureMode] = useState<ResponseCaptureMode>('assigned')
+  const [captureMode, setCaptureMode] = useState<ResponseCaptureMode>('first_responder')
   const [scoringMode, setScoringMode] = useState<ScoringMode>('simple')
 
   useEffect(() => {
@@ -52,6 +114,7 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
         const firstLessonId = setupData.lessons.find((lesson) => lesson.course_id === firstCourseId)?.id ?? ''
         setCourseId(firstCourseId)
         setLessonId(firstLessonId)
+        setTitle(getDefaultRoomTitleFromLesson(setupData.lessons.find((lesson) => lesson.id === firstLessonId)?.title))
         setSelectedSectionIds(getSectionIdsForLesson(setupData, firstLessonId))
         setCciStandardCardId(setupData.cciCards[0]?.id ?? '')
         setError(null)
@@ -81,6 +144,11 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
 
   const selectedCourse = data?.courses.find((course) => course.id === courseId)
   const selectedLesson = data?.lessons.find((lesson) => lesson.id === lessonId)
+  const defaultRoomTitle = getDefaultRoomTitleFromLesson(selectedLesson?.title)
+
+  useEffect(() => {
+    if (!isTitleCustomized) setTitle(defaultRoomTitle)
+  }, [defaultRoomTitle, isTitleCustomized])
 
   useEffect(() => {
     if (!lessonsForCourse.some((lesson) => lesson.id === lessonId)) {
@@ -136,11 +204,17 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
     const nextLessonId = data?.lessons.find((lesson) => lesson.course_id === nextCourseId)?.id ?? ''
     setCourseId(nextCourseId)
     setLessonId(nextLessonId)
+    if (!isTitleCustomized) {
+      setTitle(getDefaultRoomTitleFromLesson(data?.lessons.find((lesson) => lesson.id === nextLessonId)?.title))
+    }
     setSelectedSectionIds(getSectionIdsForLesson(data, nextLessonId))
   }
 
   function handleLessonChange(nextLessonId: UUID) {
     setLessonId(nextLessonId)
+    if (!isTitleCustomized) {
+      setTitle(getDefaultRoomTitleFromLesson(data?.lessons.find((lesson) => lesson.id === nextLessonId)?.title))
+    }
     setSelectedSectionIds(getSectionIdsForLesson(data, nextLessonId))
   }
 
@@ -193,20 +267,32 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
 
   const resourceCountLabel = isCountingResources ? 'checking…' : String(approvedResourceCount)
   const readySummary = `${selectedSectionIds.length}/${sectionsForLesson.length} sections · ${resourceCountLabel} resources`
+  const createDisabledReason = isCountingResources
+    ? 'Checking approved resources'
+    : approvedResourceCount === 0
+      ? 'Select topics with approved resources before creating a room'
+      : selectedSectionIds.length === 0
+        ? 'Select at least one topic in Advanced Options'
+        : !courseId || !lessonId
+          ? 'Choose a course and lesson'
+          : undefined
 
   return (
     <AppShell
-      description="Choose a compact resource scope, room settings, and scoring standard before sharing the room code."
+      description="Start with the room idea, course, lesson, and approved-resource readiness. Advanced database/scoring settings stay secondary."
       eyebrow="Teacher Host"
       headerMeta={
-        <div className="theme-card border border-chunks-hairline bg-white p-4 shadow-soft">
-          <p className="text-sm font-semibold text-chunks-body">Current filter</p>
-          <p className="mt-2 text-xl font-semibold text-chunks-ink">{readySummary}</p>
-        </div>
+        <CreateRoomAreaMap
+          approvedResourceCount={approvedResourceCount}
+          canCreate={canCreate}
+          readySummary={readySummary}
+          selectedSectionCount={selectedSectionIds.length}
+          totalSectionCount={sectionsForLesson.length}
+        />
       }
       statusLabel="Create Room"
       themeControl={themeControl}
-      title="Create a live room."
+      title="Create Room recipe"
     >
       {isLoading ? (
         <Alert className="mb-5" title="Loading setup data">
@@ -224,12 +310,31 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
         <WorkspaceLayout
           primary={
             <>
-              <CollapsiblePanel
-                panelId="teacher-setup-resource-scope"
-                summary={selectedCourse && selectedLesson ? `${selectedCourse.title} · ${selectedLesson.title}` : 'Choose course and lesson'}
-                title="Resource scope"
-              >
-                <div className="grid gap-5 md:grid-cols-2">
+              <Card className="space-y-5 border-2 border-chunks-ink" padding="lg" variant="surface">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Badge tone="brand">Create Room recipe</Badge>
+                    <h2 className="mt-3 text-2xl font-semibold text-chunks-ink">Launch the room from the main idea.</h2>
+                    <p className="mt-2 text-sm leading-6 text-chunks-body">
+                      Pick the class idea, course, and lesson first. Advanced Options keeps database topics and scoring controls available without dominating setup.
+                    </p>
+                  </div>
+                  <Badge tone={approvedResourceCount > 0 ? 'success' : 'warning'}>{resourceCountLabel} approved resources</Badge>
+                </div>
+
+                <label className="block">
+                  <span className="text-sm font-semibold text-chunks-ink">Room title / class idea</span>
+                  <input
+                    className="mt-2 min-h-12 w-full rounded-2xl border border-chunks-hairline bg-white px-4 text-chunks-ink"
+                    onChange={(event) => {
+                      setIsTitleCustomized(true)
+                      setTitle(event.target.value)
+                    }}
+                    value={title}
+                  />
+                </label>
+
+                <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="text-sm font-semibold text-chunks-ink">Course</span>
                     <select
@@ -251,12 +356,29 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
                     </select>
                   </label>
                 </div>
-                <fieldset className="mt-5">
+
+                <div className="grid gap-3 rounded-2xl bg-chunks-soft p-3 text-sm text-chunks-body sm:grid-cols-3">
+                  <div><strong className="block text-chunks-ink">Topics</strong>{selectedSectionIds.length}/{sectionsForLesson.length} selected</div>
+                  <div><strong className="block text-chunks-ink">Mode</strong>{captureMode}</div>
+                  <div><strong className="block text-chunks-ink">Readiness</strong>{readySummary}</div>
+                </div>
+
+                <Button disabled={!canCreate} disabledReason={createDisabledReason} fullWidth size="lg" type="submit">
+                  {isCreating ? 'Creating room…' : 'Create room'}
+                </Button>
+              </Card>
+
+              <CollapsiblePanel
+                panelId="teacher-setup-advanced-options"
+                summary={`${selectedSectionIds.length} topics · ${captureMode} · ${scoringMode}`}
+                title="Advanced Options"
+              >
+                <fieldset>
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <legend className="text-sm font-semibold text-chunks-ink">Database sections</legend>
+                    <legend className="text-sm font-semibold text-chunks-ink">Topic filters from the selected lesson</legend>
                     <div className="flex gap-2">
-                      <Button onClick={selectAllLessonSections} type="button" variant="secondary">Select all sections</Button>
-                      <Button onClick={clearLessonSections} type="button" variant="secondary">Clear</Button>
+                      <Button onClick={selectAllLessonSections} type="button" variant="secondary">Select all topics</Button>
+                      <Button onClick={clearLessonSections} type="button" variant="secondary">Clear topics</Button>
                     </div>
                   </div>
                   <div className="mt-3 grid max-h-72 gap-3 overflow-auto rounded-2xl border border-chunks-hairline bg-white p-3 md:grid-cols-2">
@@ -272,26 +394,10 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
                       </label>
                     ))}
                   </div>
-                  <span className="mt-2 block text-sm font-semibold text-chunks-body">
-                    {readySummary} after filter
-                  </span>
+                  <span className="mt-2 block text-sm font-semibold text-chunks-body">{readySummary} after topic filter</span>
                 </fieldset>
-              </CollapsiblePanel>
 
-              <CollapsiblePanel
-                panelId="teacher-setup-room-settings"
-                summary={`${captureMode} · ${scoringMode}`}
-                title="Room settings"
-              >
-                <div className="grid gap-5 md:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-semibold text-chunks-ink">Room title</span>
-                    <input
-                      className="mt-2 min-h-12 w-full rounded-2xl border border-chunks-hairline bg-white px-4 text-chunks-ink"
-                      onChange={(event) => setTitle(event.target.value)}
-                      value={title}
-                    />
-                  </label>
+                <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <label className="block">
                     <span className="text-sm font-semibold text-chunks-ink">Host name</span>
                     <input
@@ -322,6 +428,9 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
                       <option value="auto_rotate">Auto rotate</option>
                     </select>
                   </label>
+                  <div className="rounded-2xl bg-chunks-soft p-4 text-sm leading-6 text-chunks-body">
+                    <strong className="text-chunks-ink">Scoring:</strong> {scoringMode}. Advanced settings remain visible here, but room launch stays driven by the recipe above.
+                  </div>
                 </div>
                 <input name="scoringMode" type="hidden" value={scoringMode} />
               </CollapsiblePanel>
@@ -340,8 +449,8 @@ export function TeacherSetupPage({ onRoomCreated, themeControl }: TeacherSetupPa
                   Select database sections with approved sentence resources before creating a room.
                 </Alert>
               ) : null}
-              <ActionDock className="mt-5" label="Create room" meta="Room creation uses the selected database section IDs.">
-                <Button disabled={!canCreate} type="submit">
+              <ActionDock className="mt-5" label="Create room" meta="Same launch action as the recipe card; use Advanced Options only when you need to change defaults.">
+                <Button disabled={!canCreate} disabledReason={createDisabledReason} type="submit">
                   {isCreating ? 'Creating room…' : 'Create room'}
                 </Button>
               </ActionDock>

@@ -6,8 +6,8 @@ export type RoomStatus = 'lobby' | 'round_open' | 'round_closed' | 'finished'
 export type RoundStatus = 'draft' | 'open' | 'closed'
 export type ResponseCaptureMode = 'assigned' | 'first_responder' | 'auto_rotate'
 export type ScoringMode = 'simple' | 'timed'
-export type ResponseColor = 'red' | 'yellow' | 'green'
-export type LearnerPerformanceY = 0 | 1 | 2
+export type ResponseColor = 'red' | 'yellow' | 'green' | 'purple'
+export type LearnerPerformanceY = 0 | 1 | 2 | 3
 export type LearnerState =
   | 'waiting'
   | 'assigned'
@@ -188,6 +188,7 @@ export interface LearnerResponse {
   finalized: boolean
   scoring_mode_snapshot: ScoringMode
   response_capture_mode_snapshot: ResponseCaptureMode
+  formula_version_snapshot: string
   submitted_at: string
   updated_at: string
 }
@@ -198,6 +199,7 @@ export interface LearnerProgressSummary {
   red_count: number
   yellow_count: number
   green_count: number
+  purple_count: number
   highest_cpd: number
   total_cpd: number
   average_cpd: number

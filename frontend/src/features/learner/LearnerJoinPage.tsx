@@ -93,7 +93,7 @@ export function LearnerJoinPage({ roomCode, themeControl }: LearnerJoinPageProps
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/60">Learner rules</p>
               <ul className="mt-5 space-y-3 text-sm leading-6 text-white/80">
                 <li>Wait until the teacher opens a Sentence Window.</li>
-                <li>Assigned learners can answer Red, Yellow, or Green.</li>
+                <li>Eligible learners answer with one color icon.</li>
                 <li>Each round stores one tracked response.</li>
               </ul>
             </Card>

@@ -1,5 +1,4 @@
-import { Card } from '../../../components/ui/Card'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Badge, Card } from '../../../components/primitives'
 import type { CapturedResponseDetail, ProgressSummaryRow } from '../../live-room/progressService'
 
 interface CapturedResponsePanelProps {
@@ -11,6 +10,7 @@ const toneByColor = {
   red: 'error',
   yellow: 'warning',
   green: 'success',
+  purple: 'info',
 } as const
 
 export function CapturedResponsePanel({ lastResponse, summaries }: CapturedResponsePanelProps) {
@@ -24,7 +24,7 @@ export function CapturedResponsePanel({ lastResponse, summaries }: CapturedRespo
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-chunks-body">Captured response</p>
           <h2 className="mt-1 text-xl font-semibold text-chunks-ink">Room progress</h2>
         </div>
-        <StatusBadge tone={lastResponse ? 'success' : 'neutral'}>{totalResponses} captured</StatusBadge>
+        <Badge tone={lastResponse ? 'success' : 'neutral'}>{totalResponses} captured</Badge>
       </div>
 
       {lastResponse ? (
@@ -36,7 +36,7 @@ export function CapturedResponsePanel({ lastResponse, summaries }: CapturedRespo
               </p>
               <p className="mt-2 text-2xl font-semibold capitalize text-chunks-ink">{lastResponse.response_color}</p>
             </div>
-            <StatusBadge tone={toneByColor[lastResponse.response_color]}>{lastResponse.response_color}</StatusBadge>
+            <Badge tone={toneByColor[lastResponse.response_color]}>{lastResponse.response_color}</Badge>
           </div>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
             <Metric label="CCI" value={formatNumber(lastResponse.cci_result)} />

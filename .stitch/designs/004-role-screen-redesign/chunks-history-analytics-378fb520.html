@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CHUNKS | History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Public+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#d3dbdd",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#596061",
+                        "surface-container-highest": "#dde4e5",
+                        "surface-container-low": "#f2f4f4",
+                        "on-secondary": "#fff8f1",
+                        "surface-container": "#ebeeef",
+                        "on-primary-container": "#a7001d",
+                        "inverse-primary": "#ff5355",
+                        "surface-variant": "#dde4e5",
+                        "primary": "#bd0d25",
+                        "error-dim": "#5c1202",
+                        "error": "#9e422c",
+                        "surface-bright": "#f9f9f9",
+                        "on-primary-fixed-variant": "#b90722",
+                        "on-primary": "#fff6f5",
+                        "secondary-fixed": "#ffdea8",
+                        "secondary-container": "#ffdea8",
+                        "on-surface": "#2d3435",
+                        "primary-fixed": "#ffdad7",
+                        "surface-tint": "#bd0d25",
+                        "surface": "#f9f9f9",
+                        "tertiary-dim": "#006036",
+                        "on-tertiary-container": "#005b33",
+                        "primary-fixed-dim": "#ffc7c3",
+                        "on-error": "#fff7f6",
+                        "tertiary-fixed-dim": "#5de899",
+                        "surface-container-high": "#e4e9ea",
+                        "on-primary-fixed": "#850014",
+                        "primary-container": "#ffdad7",
+                        "secondary-fixed-dim": "#ffcd71",
+                        "secondary": "#7d5900",
+                        "on-tertiary-fixed-variant": "#00653a",
+                        "on-secondary-container": "#6c4c00",
+                        "inverse-on-surface": "#9c9d9d",
+                        "on-secondary-fixed-variant": "#785500",
+                        "on-background": "#2d3435",
+                        "secondary-dim": "#6e4d00",
+                        "on-tertiary-fixed": "#004626",
+                        "outline-variant": "#acb3b4",
+                        "tertiary-fixed": "#6cf6a6",
+                        "on-error-container": "#742410",
+                        "background": "#f9f9f9",
+                        "primary-dim": "#a9001d",
+                        "tertiary-container": "#6cf6a6",
+                        "on-secondary-fixed": "#553b00",
+                        "outline": "#757c7d",
+                        "inverse-surface": "#0c0f0f",
+                        "on-tertiary": "#e7ffeb",
+                        "tertiary": "#006e3f",
+                        "error-container": "#fe8b70"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Public Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dde4e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #acb3b4; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (Authority: Shared Components JSON) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-surface-dim border-r border-outline-variant dark:border-on-surface-variant flex flex-col p-4 z-50">
+<div class="mb-8 px-2 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary filled-icon">school</span>
+</div>
+<div>
+<h1 class="font-headline text-xl font-bold text-on-surface dark:text-surface-bright leading-none">CHUNKS</h1>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mt-1">Offline Live Room</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-on-surface hover:bg-surface-container transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body text-label-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-on-surface hover:bg-surface-container transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="font-body text-label-sm">Library</span>
+</a>
+<!-- History Active Tab -->
+<a class="flex items-center gap-3 px-3 py-2 bg-surface-container-highest dark:bg-on-surface-variant text-primary font-bold rounded-lg transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined filled-icon">history</span>
+<span class="font-body text-label-sm">History</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-on-surface hover:bg-surface-container transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-body text-label-sm">Create Room</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-on-surface hover:bg-surface-container transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-body text-label-sm">Learner</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant space-y-1">
+<button class="w-full bg-primary text-on-primary py-2.5 rounded-full font-bold text-sm mb-4 transition-transform active:scale-95">
+                New Session
+            </button>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-on-surface hover:bg-surface-container transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+<span class="font-body text-label-sm">Help</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-on-surface hover:bg-surface-container transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-sm">settings</span>
+<span class="font-body text-label-sm">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Viewport Shell -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar (Authority: Shared Components JSON) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-8 z-40">
+<div class="flex items-center gap-4 flex-1">
+<h2 class="font-headline text-lg font-semibold text-on-surface whitespace-nowrap">CHUNKS Offline Live Room | History</h2>
+<div class="max-w-md w-full ml-8 relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-1.5 text-sm focus:ring-1 focus:ring-primary/20 placeholder:text-on-surface-variant/60" placeholder="Search sessions..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-px h-4 bg-outline-variant mx-2"></div>
+<button class="flex items-center gap-2 p-1 pl-2 pr-3 rounded-full hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+<span class="text-sm font-medium text-on-surface">Teacher Admin</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-24 px-8 pb-12">
+<!-- "Inside this area" horizontal map -->
+<section class="mb-10">
+<h3 class="text-xs font-bold text-on-surface-variant/70 uppercase tracking-widest mb-4">Inside this area</h3>
+<div class="grid grid-cols-4 gap-4">
+<button class="flex flex-col items-center justify-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-primary transition-all group">
+<span class="material-symbols-outlined text-3xl text-primary mb-3">history</span>
+<span class="text-sm font-semibold">Room History</span>
+</button>
+<button class="flex flex-col items-center justify-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-primary transition-all group">
+<span class="material-symbols-outlined text-3xl text-tertiary mb-3">groups</span>
+<span class="text-sm font-semibold">Learner Distribution</span>
+</button>
+<button class="flex flex-col items-center justify-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-primary transition-all group">
+<span class="material-symbols-outlined text-3xl text-secondary mb-3">analytics</span>
+<span class="text-sm font-semibold">CPD & CCI Summary</span>
+</button>
+<button class="flex flex-col items-center justify-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-primary transition-all group">
+<span class="material-symbols-outlined text-3xl text-outline mb-3">timer</span>
+<span class="text-sm font-semibold">Reflection Timing</span>
+</button>
+</div>
+</section>
+<!-- Compact Analytics Summary -->
+<section class="mb-8 grid grid-cols-4 gap-6">
+<div class="bg-surface-container p-5 rounded-xl border border-outline-variant/30">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Avg. Engagement</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-bold font-mono tracking-tighter">84.2%</span>
+<span class="text-[10px] text-tertiary font-bold mb-1">+2.4%</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded-xl border border-outline-variant/30">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">CCI Accuracy</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-bold font-mono tracking-tighter">0.92</span>
+<span class="text-[10px] text-primary-dim font-bold mb-1">-0.05</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded-xl border border-outline-variant/30">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Completion Rate</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-bold font-mono tracking-tighter">98.1%</span>
+<span class="text-[10px] text-on-surface-variant font-bold mb-1">STABLE</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded-xl border border-outline-variant/30">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Active Rooms (30d)</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-bold font-mono tracking-tighter">124</span>
+<span class="text-[10px] text-tertiary font-bold mb-1">+12</span>
+</div>
+</div>
+</section>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-8 items-start">
+<!-- Left Column: Room History List -->
+<div class="col-span-8 space-y-4">
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-sm font-bold text-on-surface">Recent Room Logs</h4>
+<div class="flex gap-2">
+<button class="text-[10px] font-bold px-3 py-1 bg-surface-container-highest rounded-full">All Sessions</button>
+<button class="text-[10px] font-bold px-3 py-1 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">Filtered</button>
+</div>
+</div>
+<!-- Room Item -->
+<div class="bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex flex-col items-center justify-center text-on-surface-variant">
+<span class="text-[10px] font-bold">OCT</span>
+<span class="text-lg font-bold leading-none">24</span>
+</div>
+<div>
+<h5 class="text-sm font-bold leading-tight">Advanced Macroeconomic Simulation</h5>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[10px] px-2 py-0.5 bg-surface-container rounded font-mono font-bold text-on-surface-variant">ROOM_ID: B490-X</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 45m
+                                    </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-bold text-primary px-4 py-2 hover:bg-primary/5 rounded-full transition-colors">Review</button>
+<button class="text-xs font-bold bg-surface-container text-on-surface px-4 py-2 hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">visibility</span> Analytics
+                            </button>
+</div>
+</div>
+<!-- Room Item -->
+<div class="bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex flex-col items-center justify-center text-on-surface-variant">
+<span class="text-[10px] font-bold">OCT</span>
+<span class="text-lg font-bold leading-none">22</span>
+</div>
+<div>
+<h5 class="text-sm font-bold leading-tight">Introduction to Quantum Mechanics (Unit 1)</h5>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[10px] px-2 py-0.5 bg-surface-container rounded font-mono font-bold text-on-surface-variant">ROOM_ID: Q331-P</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 60m
+                                    </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-bold text-primary px-4 py-2 hover:bg-primary/5 rounded-full transition-colors">Review</button>
+<button class="text-xs font-bold bg-surface-container text-on-surface px-4 py-2 hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">visibility</span> Analytics
+                            </button>
+</div>
+</div>
+<!-- Room Item -->
+<div class="bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex flex-col items-center justify-center text-on-surface-variant">
+<span class="text-[10px] font-bold">OCT</span>
+<span class="text-lg font-bold leading-none">21</span>
+</div>
+<div>
+<h5 class="text-sm font-bold leading-tight">Organic Chemistry Labs - Titration Phase</h5>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[10px] px-2 py-0.5 bg-surface-container rounded font-mono font-bold text-on-surface-variant">ROOM_ID: C102-L</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 90m
+                                    </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-bold text-primary px-4 py-2 hover:bg-primary/5 rounded-full transition-colors">Review</button>
+<button class="text-xs font-bold bg-surface-container text-on-surface px-4 py-2 hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">visibility</span> Analytics
+                            </button>
+</div>
+</div>
+<!-- Empty State Toggle (Example) -->
+<div class="hidden flex flex-col items-center justify-center py-20 bg-surface-container-lowest border border-dashed border-outline-variant rounded-xl" id="empty-state">
+<div class="w-24 h-24 mb-6 opacity-20">
+<span class="material-symbols-outlined text-[96px] text-on-surface-variant">history_toggle_off</span>
+</div>
+<h4 class="text-lg font-bold mb-2">No completed rooms found</h4>
+<p class="text-on-surface-variant text-sm mb-6 max-w-xs text-center">Your history log is currently empty. Start a new live session to see analytics and performance data here.</p>
+<div class="flex gap-4">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-bold text-sm shadow-sm">Create a Room</button>
+<button class="bg-surface-container text-on-surface px-6 py-2 rounded-full font-bold text-sm">Go to Live Room</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Secondary Panels -->
+<div class="col-span-4 space-y-6">
+<!-- Learner Distribution Panel -->
+<div class="bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-5">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Learner Performance Distribution</h4>
+<div class="space-y-4">
+<div class="relative pt-1">
+<div class="flex mb-2 items-center justify-between">
+<div>
+<span class="text-[10px] font-semibold inline-block py-1 px-2 uppercase rounded-full text-tertiary bg-tertiary-container/20">Exceeding Expectations</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] font-semibold inline-block text-tertiary">35%</span>
+</div>
+</div>
+<div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-surface-container">
+<div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-tertiary" style="width:35%"></div>
+</div>
+</div>
+<div class="relative pt-1">
+<div class="flex mb-2 items-center justify-between">
+<div>
+<span class="text-[10px] font-semibold inline-block py-1 px-2 uppercase rounded-full text-secondary bg-secondary-container/20">Meeting Targets</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] font-semibold inline-block text-secondary">48%</span>
+</div>
+</div>
+<div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-surface-container">
+<div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-secondary" style="width:48%"></div>
+</div>
+</div>
+<div class="relative pt-1">
+<div class="flex mb-2 items-center justify-between">
+<div>
+<span class="text-[10px] font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary-container/20">Action Required</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] font-semibold inline-block text-primary">17%</span>
+</div>
+</div>
+<div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-surface-container">
+<div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary" style="width:17%"></div>
+</div>
+</div>
+</div>
+<p class="text-[10px] text-on-surface-variant italic mt-2">Based on the last 5 finalized sessions.</p>
+</div>
+<!-- Trend Summary Panel -->
+<div class="bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-5">
+<div class="flex items-center justify-between mb-4">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">CPD/CCI Trend</h4>
+<span class="text-[10px] font-mono bg-tertiary-container/10 text-tertiary px-2 py-0.5 rounded">+0.12 pts</span>
+</div>
+<div class="h-24 w-full flex items-end justify-between gap-1 mb-4">
+<!-- Mock Sparkline -->
+<div class="bg-surface-container w-full h-[40%] rounded-t-sm"></div>
+<div class="bg-surface-container w-full h-[55%] rounded-t-sm"></div>
+<div class="bg-surface-container-highest w-full h-[70%] rounded-t-sm"></div>
+<div class="bg-surface-container-highest w-full h-[60%] rounded-t-sm"></div>
+<div class="bg-primary w-full h-[85%] rounded-t-sm"></div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between border-t border-outline-variant/20 pt-3">
+<span class="text-[11px] font-medium text-on-surface-variant">Response Clarity</span>
+<span class="text-[11px] font-bold">8.4 / 10</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-[11px] font-medium text-on-surface-variant">CCI Correlation</span>
+<span class="text-[11px] font-bold text-tertiary">Strong</span>
+</div>
+</div>
+</div>
+<!-- Global Callout -->
+<div class="bg-primary-container/30 border border-primary/20 rounded-xl p-5">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary">tips_and_updates</span>
+<div>
+<h6 class="text-xs font-bold text-on-primary-container uppercase mb-1">Reflection Tip</h6>
+<p class="text-[11px] text-on-primary-container leading-relaxed">Classes using the "Reflection Timing" anchor consistently show 12% higher CCI accuracy in follow-up sessions.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Visual Floating Feedback (Subtle interaction) -->
+<script>
+        // Simple logic for the demo to toggle empty state (for reviewer convenience)
+        let isEmpty = false;
+        function toggleState() {
+            isEmpty = !isEmpty;
+            const items = document.querySelectorAll('.col-span-8 > .bg-surface-container-lowest');
+            const empty = document.getElementById('empty-state');
+            
+            if (isEmpty) {
+                items.forEach(el => el.classList.add('hidden'));
+                empty.classList.remove('hidden');
+            } else {
+                items.forEach(el => el.classList.remove('hidden'));
+                empty.classList.add('hidden');
+            }
+        }
+        // Press 'E' to toggle empty state in demo
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'e') toggleState();
+        });
+    </script>
+</body></html>

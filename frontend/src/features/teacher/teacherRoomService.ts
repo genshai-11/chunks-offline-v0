@@ -122,7 +122,7 @@ export async function createTeacherRoom(
       status: 'lobby',
       course_id: input.courseId,
       lesson_id: input.lessonId,
-      host_name: input.hostName.trim() || 'Teacher Host',
+      host_name: input.hostName.trim() || 'Chunker',
       resource_scope_filter: {
         course_id: input.courseId,
         lesson_id: input.lessonId,

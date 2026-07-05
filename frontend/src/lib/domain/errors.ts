@@ -22,7 +22,7 @@ const messages: Record<DomainErrorCode, string> = {
   round_not_open: 'The current round is not open for responses.',
   learner_not_eligible: 'You are observing this round and cannot respond yet.',
   duplicate_response: 'Your response was already captured for this round.',
-  invalid_response_color: 'Choose Red, Yellow, or Green.',
+  invalid_response_color: 'Choose one available response color.',
   permission_denied: 'You do not have permission to perform this action.',
   unknown: 'Something went wrong. Please try again.',
 }

@@ -8,6 +8,7 @@ coverage/
 *.log
 playwright-report/
 test-results/
+frontend/storybook-static/
 *.tsbuildinfo
 
 # Windows reserved-name artifact from shell redirection

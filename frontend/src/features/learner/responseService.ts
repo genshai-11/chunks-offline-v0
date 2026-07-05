@@ -5,6 +5,7 @@ import type {
   LearnerResponse,
   LearnerState,
   PracticeRoom,
+  ResponseCaptureMode,
   ResponseColor,
   RoomMembership,
   RoomRound,
@@ -21,6 +22,7 @@ export interface LearnerRoomStateResult {
   currentRound: RoomRound | null
   currentSentence: SentenceResource | null
   existingResponse: LearnerResponse | null
+  roundHasCapturedResponse: boolean
   learnerState: LearnerState
   disabledReason: string | null
 }
@@ -63,21 +65,26 @@ export async function loadLearnerRoomState(
   const membership = (membershipResult.data ?? null) as RoomMembership | null
   const currentRound = (roundResult.data ?? null) as RoomRound | null
 
-  const [sentenceResult, responseResult] = await Promise.all([
+  const [sentenceResult, responseResult, capturedResponseResult] = await Promise.all([
     currentRound
       ? client.from('sentence_resources').select('*').eq('id', currentRound.sentence_resource_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     currentRound && learnerId
       ? client.from('learner_responses').select('*').eq('round_id', currentRound.id).eq('learner_id', learnerId).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
+    currentRound
+      ? client.from('learner_responses').select('id').eq('round_id', currentRound.id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
   ])
 
   if (sentenceResult.error) throw mapSupabaseError(sentenceResult.error)
   if (responseResult.error) throw mapSupabaseError(responseResult.error)
+  if (capturedResponseResult.error) throw mapSupabaseError(capturedResponseResult.error)
 
   const existingResponse = (responseResult.data ?? null) as LearnerResponse | null
   const currentSentence = (sentenceResult.data ?? null) as SentenceResource | null
-  const { learnerState, disabledReason } = deriveLearnerState({ currentRound, existingResponse, learnerId, membership, room })
+  const roundHasCapturedResponse = Boolean(currentRound?.captured_learner_id || capturedResponseResult.data)
+  const { learnerState, disabledReason } = deriveLearnerState({ currentRound, existingResponse, learnerId, membership, room, roundHasCapturedResponse })
 
   return {
     room,
@@ -85,6 +92,7 @@ export async function loadLearnerRoomState(
     currentRound,
     currentSentence,
     existingResponse,
+    roundHasCapturedResponse,
     learnerState,
     disabledReason,
   }
@@ -101,7 +109,15 @@ export async function submitLearnerResponse(
   const round = roundResult.data as RoomRound
 
   if (round.status !== 'open') throw createDomainError('round_not_open')
-  if (round.response_capture_mode_snapshot !== 'first_responder' && round.assigned_learner_id !== input.learnerId) {
+
+  const roomResult = await client.from('practice_rooms').select('default_response_capture_mode').eq('id', round.room_id).maybeSingle()
+  if (roomResult.error) throw mapSupabaseError(roomResult.error)
+
+  const effectiveCaptureMode = resolveEffectiveResponseCaptureMode(
+    round.response_capture_mode_snapshot,
+    (roomResult.data as Pick<PracticeRoom, 'default_response_capture_mode'> | null)?.default_response_capture_mode,
+  )
+  if (effectiveCaptureMode !== 'first_responder' && round.assigned_learner_id !== input.learnerId) {
     throw createDomainError('learner_not_eligible')
   }
 
@@ -134,6 +150,7 @@ export async function submitLearnerResponse(
       finalized: true,
       scoring_mode_snapshot: score.scoringModeSnapshot,
       response_capture_mode_snapshot: round.response_capture_mode_snapshot,
+      formula_version_snapshot: score.formulaVersionSnapshot,
     })
     .select('*')
     .single()
@@ -152,12 +169,14 @@ function deriveLearnerState({
   learnerId,
   membership,
   room,
+  roundHasCapturedResponse,
 }: {
   currentRound: RoomRound | null
   existingResponse: LearnerResponse | null
   learnerId: UUID | null
   membership: RoomMembership | null
   room: PracticeRoom
+  roundHasCapturedResponse: boolean
 }): { learnerState: LearnerState; disabledReason: string | null } {
   if (!learnerId || !membership) return { learnerState: 'waiting', disabledReason: 'Join this room before responding.' }
   if (room.status === 'finished') return { learnerState: 'round_closed', disabledReason: 'This room has finished.' }
@@ -165,9 +184,22 @@ function deriveLearnerState({
     return { learnerState: 'round_closed', disabledReason: 'The teacher has not opened a response window.' }
   }
   if (existingResponse) return { learnerState: 'already_responded', disabledReason: 'Your response was already captured.' }
-  if (currentRound.response_capture_mode_snapshot !== 'first_responder' && currentRound.assigned_learner_id !== learnerId) {
+  if (roundHasCapturedResponse) {
+    return { learnerState: 'observing', disabledReason: 'A response has already been captured for this round.' }
+  }
+  const effectiveCaptureMode = resolveEffectiveResponseCaptureMode(currentRound.response_capture_mode_snapshot, room.default_response_capture_mode)
+  if (effectiveCaptureMode !== 'first_responder' && currentRound.assigned_learner_id !== learnerId) {
     return { learnerState: 'observing', disabledReason: 'You are observing this assigned round.' }
   }
-  if (currentRound.captured_learner_id === learnerId) return { learnerState: 'captured', disabledReason: 'Your response is captured.' }
   return { learnerState: 'assigned', disabledReason: null }
+}
+
+export function resolveEffectiveResponseCaptureMode(roundMode: unknown, roomMode: unknown): ResponseCaptureMode {
+  if (isResponseCaptureMode(roundMode)) return roundMode
+  if (isResponseCaptureMode(roomMode)) return roomMode
+  return 'assigned'
+}
+
+function isResponseCaptureMode(value: unknown): value is ResponseCaptureMode {
+  return value === 'assigned' || value === 'first_responder' || value === 'auto_rotate'
 }

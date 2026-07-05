@@ -63,3 +63,33 @@
 
 - Proceed to Phase 1: data-model.md (N/A — no data entities), contracts/ (UI contracts for primitives), quickstart.md (Storybook + validation scenarios).
 - After plan complete → `/speckit-tasks` to generate implementation tasks.
+
+
+## Appendix A — Existing UI Styling Audit (T004)
+
+Audited source areas: `frontend/src/components/ui`, `frontend/src/components/layout`, `frontend/src/routes/RoleEntryPage.tsx`, and primary Admin/Teacher/Learner feature folders.
+
+### Starting patterns
+
+- UI wrappers existed for Button, Card, Alert, StatusBadge, CollapsiblePanel, and ThemeSwitcher.
+- Feature surfaces used a mixture of wrapper components plus one-off Tailwind class strings for buttons, cards, status pills, and form controls.
+- Theme-specific behavior depended on `theme-*` classes and CSS variables in `globals.css`, but tokens were not separated from global base/theme-class CSS.
+- ThemeSwitcher used raw buttons and repeated selected/unselected classes instead of shared primitive variants.
+
+### Foundation decisions
+
+- Keep legacy `components/ui/*` wrappers as compatibility shims, but delegate Button/Card/Alert/StatusBadge to primitives.
+- Centralize primitives under `frontend/src/components/primitives`.
+- Extract theme variables into `frontend/src/styles/tokens.css`.
+- Keep `globals.css` focused on Tailwind layers, base styles, and theme class behavior.
+- Add Storybook and axe checks as repeatable validation gates.
+
+## Appendix B — Stitch Variant Review (T019/T020)
+
+Stitch MCP was run against `projects/16464063998967172630` (**Chunks Offline Live Room**). Existing Stitch-generated design systems were reviewed instead of creating duplicate variants. Details are documented in `specs/002-component-library-foundation/stitch-variant-audit.md`.
+
+Approved mapping: keep four runtime themes, extract tokens, expose Tailwind aliases, refactor theme switching through primitives, and retain Stitch as design-time guidance only.
+
+## Appendix C — Accessibility Audit Summary (T025–T028)
+
+Detailed audit notes are in `specs/002-component-library-foundation/accessibility-audit.md`. Automated coverage includes `jest-axe` assertions in `frontend/src/components/primitives/Accessibility.test.tsx`, Storybook a11y addon configuration, full frontend tests, app build, and Storybook build.

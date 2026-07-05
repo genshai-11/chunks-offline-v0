@@ -1,4 +1,4 @@
-import { Alert } from '../../../components/ui/Alert'
+import { Badge, Card, CardContent } from '../../../components/primitives'
 import type { LearnerState } from '../../../lib/domain/types'
 
 interface LearnerStateBannerProps {
@@ -15,12 +15,26 @@ const titleByState: Record<LearnerState, string> = {
   round_closed: 'Round closed',
 }
 
-export function LearnerStateBanner({ disabledReason, learnerState }: LearnerStateBannerProps) {
-  const tone = learnerState === 'assigned' ? 'success' : learnerState === 'observing' || learnerState === 'round_closed' ? 'warning' : 'info'
+const toneByState: Record<LearnerState, 'info' | 'success' | 'warning'> = {
+  waiting: 'info',
+  assigned: 'success',
+  observing: 'warning',
+  captured: 'success',
+  already_responded: 'info',
+  round_closed: 'warning',
+}
 
+export function LearnerStateBanner({ disabledReason, learnerState }: LearnerStateBannerProps) {
   return (
-    <Alert tone={tone} title={titleByState[learnerState]}>
-      {disabledReason ?? 'Choose Red, Yellow, or Green when you are ready.'}
-    </Alert>
+    <Card aria-live="polite" className="border-chunks-hairline bg-white/95">
+      <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <Badge tone={toneByState[learnerState]}>{titleByState[learnerState]}</Badge>
+          <p className="mt-3 text-sm leading-6 text-chunks-body">
+            {disabledReason ?? 'Choose the color icon that matches your answer when you are ready.'}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,5 +1,4 @@
-import { Card } from '../../../components/ui/Card'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Badge, Card } from '../../../components/primitives'
 import type { CapturedResponseDetail } from '../../live-room/progressService'
 
 interface LastCapturedResponseProps {
@@ -10,6 +9,7 @@ const toneByColor = {
   red: 'error',
   yellow: 'warning',
   green: 'success',
+  purple: 'info',
 } as const
 
 export function LastCapturedResponse({ response }: LastCapturedResponseProps) {
@@ -18,7 +18,7 @@ export function LastCapturedResponse({ response }: LastCapturedResponseProps) {
       <Card>
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-chunks-ink">Last captured response</h2>
-          <StatusBadge tone="neutral">Waiting</StatusBadge>
+          <Badge tone="neutral">Waiting</Badge>
         </div>
         <p className="mt-5 rounded-2xl bg-chunks-soft p-4 text-sm leading-6 text-chunks-body">
           No accepted response has been captured for you yet.
@@ -31,7 +31,7 @@ export function LastCapturedResponse({ response }: LastCapturedResponseProps) {
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-chunks-ink">Last captured response</h2>
-        <StatusBadge tone={toneByColor[response.response_color]}>{response.response_color}</StatusBadge>
+        <Badge tone={toneByColor[response.response_color]}>{response.response_color}</Badge>
       </div>
 
       <div className="mt-5 rounded-2xl border border-chunks-hairline bg-chunks-soft p-4">

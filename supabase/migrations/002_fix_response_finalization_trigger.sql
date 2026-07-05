@@ -78,6 +78,7 @@ begin
     new.cpd_result = old.cpd_result;
     new.scoring_mode_snapshot = old.scoring_mode_snapshot;
     new.response_capture_mode_snapshot = old.response_capture_mode_snapshot;
+    new.formula_version_snapshot = old.formula_version_snapshot;
     new.submitted_at = old.submitted_at;
     new.updated_at = now();
     return new;
@@ -111,6 +112,7 @@ begin
   new.cpd_result = score_record.cpd_result;
   new.scoring_mode_snapshot = round_record.scoring_mode_snapshot;
   new.response_capture_mode_snapshot = round_record.response_capture_mode_snapshot;
+  new.formula_version_snapshot = coalesce(new.formula_version_snapshot, 'simple-v1');
   new.finalized = false;
   new.updated_at = now();
   new.submitted_at = coalesce(new.submitted_at, now());

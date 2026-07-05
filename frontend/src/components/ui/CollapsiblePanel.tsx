@@ -44,32 +44,40 @@ export function CollapsiblePanel({
     }
   }, [open, panelId])
 
-  const variantClassName =
-    variant === 'dark'
-      ? 'theme-card theme-card-dark border border-chunks-hairline bg-chunks-dark text-white shadow-soft'
-      : 'theme-card border border-chunks-hairline bg-white text-chunks-ink shadow-soft'
+  const isDark = variant === 'dark'
+  const shellClassName = isDark
+    ? 'border border-chunks-hairline bg-chunks-dark text-white'
+    : 'border border-chunks-hairline bg-white text-chunks-ink'
+  const contentClassName = isDark
+    ? 'border-t border-white/10 bg-white/5'
+    : 'border-t border-chunks-hairline bg-chunks-soft/60'
 
   return (
-    <section className={`rounded-3xl ${variantClassName} ${className}`}>
-      <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 p-4 md:p-5">
-        <button
-          aria-controls={contentId}
-          aria-expanded={open}
-          className="group flex min-h-11 min-w-0 flex-1 items-center gap-3 text-left active:scale-[0.99]"
-          onClick={() => setOpen((current) => !current)}
-          type="button"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-current text-sm font-black">
-            {open ? '−' : '+'}
-          </span>
-          <span className="min-w-0">
-            <span className="block text-base font-semibold">{title}</span>
-            {summary ? <span className="mt-1 block text-sm opacity-75">{summary}</span> : null}
-          </span>
-        </button>
-        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+    <section className={`overflow-hidden rounded-2xl ${shellClassName} ${className}`}>
+      <div className="grid grid-cols-[4px_minmax(0,1fr)]">
+        <span className={open ? 'bg-chunks-red' : 'bg-chunks-hairline'} aria-hidden="true" />
+        <div>
+          <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <button
+              aria-controls={contentId}
+              aria-expanded={open}
+              className="group flex min-h-10 min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chunks-red"
+              onClick={() => setOpen((current) => !current)}
+              type="button"
+            >
+              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl border text-sm font-black ${isDark ? 'border-white/20 bg-white/10 text-white' : 'border-chunks-hairline bg-white text-chunks-red'}`}>
+                {open ? '−' : '+'}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold tracking-tight">{title}</span>
+                {summary ? <span className={`mt-1 block truncate text-xs ${isDark ? 'text-white/65' : 'text-chunks-body'}`}>{summary}</span> : null}
+              </span>
+            </button>
+            {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+          </div>
+          {open ? <div className={`${contentClassName} p-4`} id={contentId}>{children}</div> : null}
+        </div>
       </div>
-      {open ? <div className="border-t border-chunks-hairline p-4 md:p-5" id={contentId}>{children}</div> : null}
     </section>
   )
 }

@@ -38,17 +38,17 @@ describe('TeacherSetupPage', () => {
       room: {
         id: 'room-1',
         room_code: 'ABC123',
-        title: 'CHUNKS Mirror Practice',
+        title: 'Viettel',
         status: 'lobby',
         current_round_id: null,
         course_id: 'course-1',
         lesson_id: 'lesson-1',
-        host_name: 'Teacher Host',
+        host_name: 'Chunker',
         resource_scope_filter: {},
         snapshot_sentence_resource_ids: ['sentence-1'],
         scope_refreshed_at: '',
         scoring_mode: 'simple',
-        default_response_capture_mode: 'assigned',
+        default_response_capture_mode: 'first_responder',
         teacher_pin_hash: null,
         created_at: '',
         updated_at: '',
@@ -57,13 +57,15 @@ describe('TeacherSetupPage', () => {
     })
   })
 
-  it('loads approved setup data and creates an assigned-mode room', async () => {
+  it('loads approved setup data and creates a first-responder room with lesson-derived title defaults', async () => {
     const user = userEvent.setup()
     const onRoomCreated = vi.fn()
 
     render(<TeacherSetupPage onRoomCreated={onRoomCreated} />)
 
-    expect(await screen.findByRole('heading', { name: /create a live room/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /create room recipe/i })).toBeInTheDocument()
+    expect(screen.getByText(/Launch the room from the main idea/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Advanced Options/i })).toBeInTheDocument()
     expect(await screen.findByText('Course A')).toBeInTheDocument()
     const keywords = screen.getByLabelText('Keywords')
     const grammar = screen.getByLabelText('Grammar')
@@ -84,17 +86,17 @@ describe('TeacherSetupPage', () => {
     await waitFor(() => expect(screen.getByText(/Filtered resources/i).parentElement).toHaveTextContent('2'))
     expect(screen.getAllByText(/2\/2 sections · 2 resources/i).length).toBeGreaterThan(0)
 
-    await user.click(screen.getByRole('button', { name: /create room/i }))
+    await user.click(screen.getAllByRole('button', { name: /create room/i })[0])
 
     await waitFor(() => {
       expect(createTeacherRoom).toHaveBeenCalledWith({
-        title: 'CHUNKS Mirror Practice',
-        hostName: 'Teacher Host',
+        title: 'Viettel',
+        hostName: 'Chunker',
         courseId: 'course-1',
         lessonId: 'lesson-2',
         sectionIds: ['section-3', 'section-4'],
         cciStandardCardId: 'cci-1',
-        captureMode: 'assigned',
+        captureMode: 'first_responder',
         scoringMode: 'simple',
       })
     })

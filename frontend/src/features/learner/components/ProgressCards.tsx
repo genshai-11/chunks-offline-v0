@@ -1,5 +1,4 @@
-import { Card } from '../../../components/ui/Card'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Badge, Card } from '../../../components/primitives'
 import type { LearnerProgressSummary } from '../../../lib/domain/types'
 
 interface ProgressCardsProps {
@@ -12,7 +11,7 @@ export function ProgressCards({ summary }: ProgressCardsProps) {
       <Card>
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-chunks-ink">My progress</h2>
-          <StatusBadge tone="neutral">No responses yet</StatusBadge>
+          <Badge tone="neutral">No responses yet</Badge>
         </div>
         <p className="mt-5 rounded-2xl bg-chunks-soft p-4 text-sm leading-6 text-chunks-body">
           Your CPD, color mix, and reflection time will appear after your first captured response.
@@ -25,9 +24,9 @@ export function ProgressCards({ summary }: ProgressCardsProps) {
     <Card>
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-chunks-ink">My progress</h2>
-        <StatusBadge tone={summary.response_count > 0 ? 'success' : 'neutral'}>
+        <Badge tone={summary.response_count > 0 ? 'success' : 'neutral'}>
           {summary.response_count} responses
-        </StatusBadge>
+        </Badge>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -37,10 +36,11 @@ export function ProgressCards({ summary }: ProgressCardsProps) {
         <MetricCard label="Avg reflection" value={`${formatNumber(summary.average_reflection_seconds)}s`} />
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-2 text-center text-sm font-semibold">
+      <div className="mt-5 grid grid-cols-4 gap-2 text-center text-sm font-semibold">
         <ColorCount label="Red" toneClass="bg-red-100 text-red-800" value={summary.red_count} />
         <ColorCount label="Yellow" toneClass="bg-yellow-100 text-yellow-800" value={summary.yellow_count} />
         <ColorCount label="Green" toneClass="bg-green-100 text-green-800" value={summary.green_count} />
+        <ColorCount label="Purple" toneClass="bg-purple-100 text-purple-800" value={summary.purple_count} />
       </div>
     </Card>
   )

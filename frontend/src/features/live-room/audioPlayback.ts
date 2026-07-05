@@ -1,6 +1,9 @@
 import type { SentenceResource } from '../../lib/domain/types'
+import { supabase } from '../../lib/supabase/client'
 
 export type AudioLanguage = 'en' | 'vi' | 'none'
+
+const RESOURCE_AUDIO_BUCKET = 'resource-audio'
 
 export interface AudioPlaybackAdapter {
   playUrl(url: string, playbackRate?: number): Promise<void>
@@ -22,7 +25,7 @@ export class BrowserAudioPlaybackAdapter implements AudioPlaybackAdapter {
       await this.audio.play()
     } catch (error) {
       this.audio = null
-      throw error
+      throw new Error(`Could not play audio. Check that the file is public and browser-supported. ${getPlaybackErrorMessage(error)}`)
     }
   }
 
@@ -51,8 +54,12 @@ export function clampPlaybackRate(playbackRate: number): number {
 
 export function getSentenceAudioUrl(sentence: SentenceResource | null | undefined, language: AudioLanguage): string | null {
   if (!sentence || language === 'none') return null
-  if (language === 'en') return sentence.audio_en_url ?? sentence.audio_url ?? null
-  return sentence.audio_vi_url ?? null
+
+  const source = language === 'en'
+    ? sentence.audio_en_url ?? getAudioVariant(sentence, 'en') ?? sentence.audio_url ?? null
+    : sentence.audio_vi_url ?? getAudioVariant(sentence, 'vi') ?? getAudioVariant(sentence, 'vietnamese') ?? null
+
+  return normalizeAudioSource(source)
 }
 
 export function hasSentenceAudio(sentence: SentenceResource | null | undefined, language: AudioLanguage): boolean {
@@ -69,4 +76,25 @@ export function isEditableShortcutTarget(target: EventTarget | null): boolean {
     target.isContentEditable === true ||
     target.getAttribute('contenteditable') === 'true'
   )
+}
+
+function getAudioVariant(sentence: SentenceResource, key: string): string | null {
+  const value = sentence.audio_variants?.[key]
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object' && 'url' in value && typeof value.url === 'string') return value.url
+  return null
+}
+
+function normalizeAudioSource(source: string | null | undefined): string | null {
+  const trimmed = source?.trim()
+  if (!trimmed) return null
+  if (/^(https?:|blob:|data:)/i.test(trimmed)) return trimmed
+
+  const objectPath = trimmed.replace(/^\/+/, '')
+  return supabase.storage.from(RESOURCE_AUDIO_BUCKET).getPublicUrl(objectPath).data.publicUrl
+}
+
+function getPlaybackErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'message' in error) return String(error.message)
+  return 'The browser reported an unknown playback error.'
 }

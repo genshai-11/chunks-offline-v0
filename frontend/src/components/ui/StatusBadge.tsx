@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react'
 
+import { Badge } from '../primitives'
+import type { PrimitiveTone } from '../primitives'
+
 type Tone = 'brand' | 'success' | 'warning' | 'error' | 'neutral'
 
-const toneClassName: Record<Tone, string> = {
-  brand: 'bg-chunks-control text-chunks-red',
-  success: 'bg-green-50 text-chunks-green',
-  warning: 'bg-yellow-50 text-yellow-700',
-  error: 'bg-red-50 text-red-700',
-  neutral: 'bg-chunks-control text-chunks-ink',
+const toneMap: Record<Tone, PrimitiveTone> = {
+  brand: 'brand',
+  success: 'success',
+  warning: 'warning',
+  error: 'error',
+  neutral: 'neutral',
 }
 
 interface StatusBadgeProps {
@@ -16,5 +19,5 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ children, tone = 'neutral' }: StatusBadgeProps) {
-  return <span className={`theme-badge inline-flex w-fit rounded-full px-4 py-2 text-sm font-semibold ${toneClassName[tone]}`}>{children}</span>
+  return <Badge tone={toneMap[tone]}>{children}</Badge>
 }

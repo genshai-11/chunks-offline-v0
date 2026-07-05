@@ -1,0 +1,112 @@
+/* Central CHUNKS theme tokens generated from Stitch visual-language audit and DESIGN.md. */
+
+:root,
+[data-theme='calm'] {
+  color-scheme: light;
+  font-family: var(--chunks-font-sans), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #ffffff;
+  color: #0a0b0d;
+
+  /* Theme 1 — calm classroom console */
+  --chunks-font-sans: Inter;
+  --chunks-font-heading: Inter;
+  --chunks-font-body: Inter;
+  --chunks-font-mono: 'JetBrains Mono';
+  --chunks-red: #cf202f;
+  --chunks-red-active: #a91925;
+  --chunks-red-disabled: #e6a1a8;
+  --chunks-ink: #0a0b0d;
+  --chunks-body: #5b616e;
+  --chunks-muted: #7c828a;
+  --chunks-muted-soft: #a8acb3;
+  --chunks-canvas: #ffffff;
+  --chunks-soft: #f7f7f7;
+  --chunks-control: #eef0f3;
+  --chunks-dark: #0a0b0d;
+  --chunks-elevated: #16181c;
+  --chunks-green: #05b169;
+  --chunks-yellow: #f4b000;
+  --chunks-hairline: #dee1e6;
+  --chunks-border: #dee1e6;
+  --chunks-blue: #1040c0;
+  --chunks-shadow-soft: 0 4px 12px rgb(0 0 0 / 0.04);
+  --chunks-shadow-hard: 4px 4px 0 0 #121212;
+  --chunks-shadow-hard-lg: 8px 8px 0 0 #121212;
+  --chunks-radius-sm: 0.75rem;
+  --chunks-radius-md: 1rem;
+  --chunks-radius-lg: 1.5rem;
+  --chunks-radius-xl: 2rem;
+  --chunks-space-card: 1.5rem;
+}
+
+[data-theme='bauhaus'] {
+  color-scheme: light;
+  font-family: Outfit, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Theme 2 — Bauhaus classroom poster */
+  --chunks-font-sans: Outfit;
+  --chunks-font-heading: Outfit;
+  --chunks-font-body: Outfit;
+  --chunks-font-mono: 'JetBrains Mono';
+  --chunks-red: #d02020;
+  --chunks-red-active: #a81818;
+  --chunks-red-disabled: #e6a1a1;
+  --chunks-ink: #121212;
+  --chunks-body: #2f2f2f;
+  --chunks-muted: #4a4a4a;
+  --chunks-muted-soft: #e0e0e0;
+  --chunks-canvas: #ffffff;
+  --chunks-soft: #f0c020;
+  --chunks-control: #ffffff;
+  --chunks-dark: #121212;
+  --chunks-elevated: #1040c0;
+  --chunks-green: #05b169;
+  --chunks-yellow: #f0c020;
+  --chunks-hairline: #121212;
+  --chunks-border: #121212;
+  --chunks-blue: #1040c0;
+  --chunks-shadow-soft: 4px 4px 0 0 #121212;
+  --chunks-shadow-hard: 4px 4px 0 0 #121212;
+  --chunks-shadow-hard-lg: 8px 8px 0 0 #121212;
+  --chunks-radius-sm: 0;
+  --chunks-radius-md: 0;
+  --chunks-radius-lg: 0;
+  --chunks-radius-xl: 0;
+  --chunks-space-card: 1.5rem;
+}
+
+[data-theme='craft'] {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Theme 4 — Craft Minimal Chunking */
+  --chunks-font-sans: Inter;
+  --chunks-font-heading: 'Space Grotesk';
+  --chunks-font-body: Inter;
+  --chunks-font-mono: 'JetBrains Mono';
+  --chunks-red: #dc2626;
+  --chunks-red-active: #c10b0d;
+  --chunks-red-disabled: #f3a6a6;
+  --chunks-ink: #171717;
+  --chunks-body: #525252;
+  --chunks-muted: #737373;
+  --chunks-muted-soft: #a3a3a3;
+  --chunks-canvas: #faf9f6;
+  --chunks-soft: #f3f4f6;
+  --chunks-control: #ffffff;
+  --chunks-dark: #171717;
+  --chunks-elevated: #f9fafb;
+  --chunks-green: #059669;
+  --chunks-yellow: #d97706;
+  --chunks-hairline: #e5e7eb;
+  --chunks-border: #d4d4d4;
+  --chunks-blue: #1d4ed8;
+  --chunks-shadow-soft: 0 1px 2px rgb(23 23 23 / 0.06);
+  --chunks-shadow-hard: 0 8px 18px -14px rgb(193 11 13 / 0.28);
+  --chunks-shadow-hard-lg: 0 14px 30px -22px rgb(193 11 13 / 0.3);
+  --chunks-radius-sm: 0.5rem;
+  --chunks-radius-md: 0.75rem;
+  --chunks-radius-lg: 1rem;
+  --chunks-radius-xl: 1.25rem;
+  --chunks-space-card: 1.25rem;
+}

@@ -1,5 +1,4 @@
-import { Card } from '../../../components/ui/Card'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Badge, Card } from '../../../components/primitives'
 import type { TeacherRosterMember } from '../../live-room/roundService'
 
 interface TeacherRosterProps {
@@ -13,7 +12,7 @@ export function TeacherRoster({ members, assignedLearnerId, onAssignedLearnerCha
     <Card>
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-chunks-ink">Roster</h2>
-        <StatusBadge tone={members.length > 0 ? 'success' : 'neutral'}>{members.length} learners</StatusBadge>
+        <Badge tone={members.length > 0 ? 'success' : 'neutral'}>{members.length} learners</Badge>
       </div>
 
       {members.length === 0 ? (

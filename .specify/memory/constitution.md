@@ -1,23 +1,19 @@
 <!--
 Sync Impact Report
-Version change: template → 1.0.0
+Version change: 1.0.0 → 1.1.0
 Modified principles:
-- [PRINCIPLE_1_NAME] → I. Domain-Led Live Learning Core
-- [PRINCIPLE_2_NAME] → II. Supabase-First Durable Realtime State
-- [PRINCIPLE_3_NAME] → III. Learner-Safe UX and Accessibility
-- [PRINCIPLE_4_NAME] → IV. Dynamic Scoring and Historical Auditability
-- [PRINCIPLE_5_NAME] → V. Testable Incremental Delivery and Release Control
+- V. Testable Incremental Delivery and Release Control — clarified that codebase exploration/fixes must use MCP CodeGraph first when code is involved.
 Added sections:
-- Product and Technical Constraints
-- Development Workflow and Quality Gates
+- None
 Removed sections:
-- Template placeholder guidance comments
+- None
 Templates requiring updates:
-- ✅ .specify/templates/plan-template.md updated
-- ✅ .specify/templates/spec-template.md updated
-- ✅ .specify/templates/tasks-template.md updated
+- ✅ .specify/templates/plan-template.md updated with CodeGraph-first constitution gate
+- ✅ .specify/templates/tasks-template.md updated with CodeGraph exploration/fix tasks
+- ✅ .specify/templates/spec-template.md reviewed; no implementation-tooling change required
+- ✅ .specify/templates/checklist-template.md reviewed; generated checklists may include CodeGraph items when requested
 Follow-up TODOs:
-- Git repository initialized on 2026-07-03; commit release changes before preview/production deployment.
+- Commit release changes before any preview/production deployment; tag only when promoting beyond development.
 -->
 # CHUNKS Mirror / Offline Live Room Constitution
 
@@ -53,12 +49,14 @@ Work MUST be sliced by independently testable user stories. Critical live-room b
 1. Start each feature from a Spec Kit `spec.md` with prioritized, independently testable stories.
 2. Complete `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`, and `tasks.md` before implementation begins.
 3. Run the Constitution Check before design and again after design artifacts are generated.
-4. Implement MVP story first, validate independently, then add later stories incrementally.
-5. Before production deploy: initialize or verify git, commit changes, tag releases when applicable, validate preview/canary, document rollback, verify restore path, and run post-deploy checks.
-6. If a rule must be violated, document the violation and simpler alternatives in the plan's Complexity Tracking section before implementation.
+4. When a task requires reading, validating, or changing existing code, agents MUST use MCP CodeGraph first to explore the relevant symbols, call paths, and blast radius before relying on manual grep/read loops. If CodeGraph is not initialized or indexed, initialize/index it for the repository before implementation; if unavailable, document the exception and fallback in the plan or task notes.
+5. When CodeGraph exposes a likely defect, missing test coverage, or affected dependency path during implementation, the fix plan MUST either address it in the current slice or record a follow-up task with explicit rationale.
+6. Implement MVP story first, validate independently, then add later stories incrementally.
+7. Before production deploy: initialize or verify git, commit changes, tag releases when applicable, validate preview/canary, document rollback, verify restore path, and run post-deploy checks.
+8. If a rule must be violated, document the violation and simpler alternatives in the plan's Complexity Tracking section before implementation.
 
 ## Governance
 
 This constitution supersedes informal project habits for CHUNKS Mirror / Offline Live Room work. Amendments require an updated Sync Impact Report, semantic version bump, and review of dependent Spec Kit templates. MAJOR changes redefine or remove principles, MINOR changes add principles or material governance, and PATCH changes clarify wording without changing obligations. All specs, plans, tasks, and release workflows MUST be checked for compliance before implementation and before production deployment.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-03 | **Last Amended**: 2026-07-03
+**Version**: 1.1.0 | **Ratified**: 2026-07-03 | **Last Amended**: 2026-07-04

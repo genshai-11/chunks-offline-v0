@@ -119,6 +119,9 @@
 ## Phase 7: Polish & Cross-Cutting Concerns
 - [x] T067 Add Theme 2 Bauhaus documentation and activate centralized Bauhaus frontend theme option
 - [x] T068 Add Admin theme switcher for dynamic calm/Bauhaus theme selection persisted in localStorage
+- [x] T104 [US1] Default Teacher setup title from selected lesson topic, default host to Chunker, and default capture mode to first_responder
+- [x] T105 [US1] Resolve teacher audio relative paths through Supabase Storage and add speaker replay affordance with selectable EN/VI state
+- [x] T106 [US4] Paginate Admin Resource Manager library at 50/100/200 rows and show clear missing audio-generation migration error
 - [ ] T057 [P] Run accessibility audit in frontend/tests/e2e/accessibility.spec.ts
 - [ ] T058 [P] Add loading, empty, reconnecting, and permission-denied states across frontend/src/features/
 - [ ] T059 [P] Add user-facing copy review for learner states in frontend/src/features/learner/components/
@@ -161,3 +164,18 @@
 ## Notes
 - Release tasks are mandatory before production deploy.
 - Repository is now initialized as git; release-control compliance still requires commits/tags before preview or production deploy.
+
+## Phase 8: Convergence
+
+- [X] T107 Fix subscribeToRoomState + getRoomFilter in frontend/src/lib/supabase/realtime.ts so that learner_responses (which has no room_id column) never receives an invalid `room_id=eq.` filter; exclude it from defaultTables or special-case (it belongs only to progress path). This blocks roster updates on join and reliable room state. per Realtime Contract, US2/AC1, FR-006, SC-003, T017 (contradicts)
+- [X] T108 Add `ALTER PUBLICATION supabase_realtime ADD TABLE ...` (or equivalent migration) for practice_rooms, room_memberships, room_rounds, learner_responses (and document Supabase dashboard Replication toggle for the hosted project) so postgres_changes actually fires. per plan:Supabase Realtime, Realtime Contract, SC-003 (missing)
+- [X] T109 Ensure Teacher roster (TeacherRoster + state.roster from loadTeacherRoomState) receives membership INSERTs in realtime: either unify subscription so progress channel also refreshes main roster state, or have TeacherRoomPage react to progress memberships for roster. Currently only the broken room channel drives roster. per FR-006, US2/AC1, US3 (partial)
+- [X] T110 Add visible realtime connection status (e.g. "Live", "Reconnecting...", error banner) and use SUBSCRIBED / error / onReconnect paths in TeacherRoomPage and LearnerRoomPage. Honor FR-019 states and contract note that realtime are hints + refetch. per FR-019, contracts/supabase-contracts.md, T058 (partial)
+- [X] T111 Improve progressService subscribeToProgressUpdates: make learner_responses listener safe/scope-aware (e.g. filter by known round_ids after initial load, or accept the broad nature explicitly with room scoping in onChange). Remove the global subscription risk. per progressService comment, US3 (partial)
+- [X] T112 Add or extend automated test (unit/integration/E2E) that asserts successful channel SUBSCRIBED status and cross-client roster/response propagation (teacher sees new learner + captured response within seconds) to cover SC-003. Update existing realtime error filtering in e2e if needed. per SC-003, T082, T020/T030 (partial)
+- [X] T113 Review/execute Supabase project realtime replication enablement for the four live-room tables using the anon key; add a quickstart or test note on how to validate WS channels in browser devtools. per plan technical context, pre-deploy-workflow.md (missing)
+- [X] T114 Re-check Constitution II (Supabase-First Durable Realtime State) after the above; ensure all realtime paths derive updates exclusively from durable Postgres changes (no client-only state for roster/progress). per Constitution II (contradicts)
+- [X] T115 Explore and prototype Supabase Realtime Broadcast (for direct ephemeral events like "round opened", timer start) + Presence (for "online" roster) instead of relying solely on postgres_changes + refetch. Align with Kahoot-style direct WS channel pushes for faster join/feedback feel while keeping Postgres durability. per research (Kahoot realtime), SC-003, Realtime Contract (partial)
+- [X] T116 Implement explicit timer synchronization in round data (opened_at + duration or startAt timestamp) and client-side countdowns so all learners see the same question window timing, matching Kahoot `startAt` pattern. Update LearnerRoomPage and teacher controls. per research (timer sync), FR-008, FR-021 (underspecified)
+- [X] T117 Create role-aware or learner-isolated shell/navigation: when route is learner-room, TopNavigation / AppShell must hide Teacher and Admin links (and "New room" action) so learners see only a clean, focused experience with no cross-role information. Add prop or separate LearnerAppShell. per spec contracts (learner room contract), user review feedback, FR-009, FR-019 (partial)
+- [X] T118 Audit and harden responsive/mobile-first behavior specifically for learner flows on phone: ensure full stacking, 44px+ touch targets, no horizontal scroll, readable text on small screens. Leverage existing Tailwind + xl: in WorkspaceLayout; add dedicated tests or Playwright mobile emulation for learner join/response. per plan ("learner mobile browsers"), constraints, US2 (partial)

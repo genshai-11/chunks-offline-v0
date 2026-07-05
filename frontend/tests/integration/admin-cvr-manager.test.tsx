@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AdminWorkspacePage } from '../../src/features/admin/AdminWorkspacePage'
+import { LibraryPage } from '../../src/features/admin/LibraryPage'
 import { loadSessionAnalytics } from '../../src/features/admin/analytics/analyticsService'
 import { loadCciAdminData, saveCciStandardCard } from '../../src/features/admin/cci/cciService'
 import { loadCvrUnits, saveCvrUnit } from '../../src/features/admin/cvr/cvrService'
@@ -36,7 +36,7 @@ describe('Admin CVR manager', () => {
 
   it('edits active CVR values used by sentence resources', async () => {
     const user = userEvent.setup()
-    render(<AdminWorkspacePage />)
+    render(<LibraryPage />)
 
     expect(await screen.findByText('High reuse')).toBeInTheDocument()
     await user.clear(screen.getByLabelText(/cvr unit value/i))

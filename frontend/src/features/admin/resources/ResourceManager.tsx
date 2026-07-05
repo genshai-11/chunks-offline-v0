@@ -1,10 +1,8 @@
 import type { FormEvent } from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Alert } from '../../../components/ui/Alert'
-import { Button } from '../../../components/ui/Button'
-import { Card } from '../../../components/ui/Card'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Panel } from '../../../components/primitives'
 import type { ApprovalStatus, Course, Lesson, LessonSection, SentenceResource } from '../../../lib/domain/types'
 import { ConfirmBatchActionDialog } from '../components/ConfirmBatchActionDialog'
 import {
@@ -16,6 +14,7 @@ import {
   requestAudioGenerationBatch,
   saveSentenceResource,
 } from './resourceService'
+import { ResourceLibraryFilter, type ResourceLibraryFilters } from './ResourceLibraryFilter'
 
 interface ResourceManagerProps {
   courses: Course[]
@@ -25,18 +24,43 @@ interface ResourceManagerProps {
   sections: LessonSection[]
 }
 
-type AudioFilter = 'all' | 'missing-en' | 'missing-vi'
+const defaultFilters: ResourceLibraryFilters = {
+  approvalStatus: 'all',
+  audio: 'all',
+  courseId: '',
+  lessonId: '',
+  sectionId: '',
+}
 
 export function ResourceManager({ courses, lessons, onRefresh, resources, sections }: ResourceManagerProps) {
-  const [audioFilter, setAudioFilter] = useState<AudioFilter>('all')
+  const [filters, setFilters] = useState<ResourceLibraryFilters>(defaultFilters)
+  const [pageSize, setPageSize] = useState(50)
+  const [currentPage, setCurrentPage] = useState(1)
   const [selectedResourceId, setSelectedResourceId] = useState<string>(resources[0]?.id ?? '')
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const filteredResources = useMemo(() => filterResourcesByAudio(resources, audioFilter), [audioFilter, resources])
-  const selectedResource = resources.find((resource) => resource.id === selectedResourceId) ?? filteredResources[0] ?? null
+  const scopedResources = useMemo(() => filterResourcesByScope(resources, filters), [filters, resources])
+  const filteredResources = useMemo(() => filterResourcesByAudio(scopedResources, filters.audio), [filters.audio, scopedResources])
+  const totalPages = Math.max(1, Math.ceil(filteredResources.length / pageSize))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const pageStartIndex = (safeCurrentPage - 1) * pageSize
+  const pagedResources = filteredResources.slice(pageStartIndex, pageStartIndex + pageSize)
+  const selectedResource = resources.find((resource) => resource.id === selectedResourceId) ?? pagedResources[0] ?? filteredResources[0] ?? null
   const missingAudioJobs = useMemo(() => getMissingAudioQueueItems(filteredResources), [filteredResources])
+  const metadata = useMemo(() => buildMetadataMaps(courses, lessons, sections), [courses, lessons, sections])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filters, pageSize, resources])
+
+  const pageRangeLabel = filteredResources.length === 0
+    ? '0 resources'
+    : `${pageStartIndex + 1}-${Math.min(pageStartIndex + pageSize, filteredResources.length)} of ${filteredResources.length}`
+
+  const readyEnCount = filteredResources.filter((resource) => Boolean(resource.audio_en_url)).length
+  const readyViCount = filteredResources.filter((resource) => Boolean(resource.audio_vi_url)).length
 
   async function handleSave(event: FormEvent<HTMLElement>) {
     event.preventDefault()
@@ -105,58 +129,96 @@ export function ResourceManager({ courses, lessons, onRefresh, resources, sectio
   }
 
   return (
-    <section aria-labelledby="resource-manager-title" className="space-y-4">
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+    <section aria-labelledby="resource-manager-title" className="grid gap-4">
+      <Panel className="grid gap-4" compact variant="surface">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-chunks-body">Resource Manager</p>
-            <h2 className="mt-1 text-2xl font-semibold text-chunks-ink" id="resource-manager-title">
-              Sentence resources, CVR Ω, and audio readiness
+            <Badge tone="brand">Resource Manager</Badge>
+            <h2 className="mt-3 text-2xl font-semibold text-chunks-ink" id="resource-manager-title">
+              Library resources
             </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-chunks-body">
+              Compact rows prioritize sentence text, lesson context, approval, and audio readiness so the library is manageable at a glance.
+            </p>
           </div>
-          <StatusBadge tone="brand">{filteredResources.length} shown</StatusBadge>
+          <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[26rem]">
+            <MetricPill label="Showing" value={pageRangeLabel} />
+            <MetricPill label="EN ready" value={`${readyEnCount}/${filteredResources.length}`} />
+            <MetricPill label="VI ready" value={`${readyViCount}/${filteredResources.length}`} />
+          </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Button onClick={() => setAudioFilter('all')} type="button" variant={audioFilter === 'all' ? 'primary' : 'secondary'}>
-            All resources
-          </Button>
-          <Button onClick={() => setAudioFilter('missing-en')} type="button" variant={audioFilter === 'missing-en' ? 'primary' : 'secondary'}>
-            Missing English audio
-          </Button>
-          <Button onClick={() => setAudioFilter('missing-vi')} type="button" variant={audioFilter === 'missing-vi' ? 'primary' : 'secondary'}>
-            Missing Vietnamese audio
-          </Button>
-          <Button disabled={missingAudioJobs.length === 0} onClick={handleGenerateAllMissingAudio} type="button" variant="secondary">
+        <ResourceLibraryFilter
+          courses={courses}
+          filters={filters}
+          lessons={lessons}
+          onChange={setFilters}
+          resultCount={filteredResources.length}
+          sections={sections}
+        />
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button disabled={missingAudioJobs.length === 0} disabledReason="No missing audio jobs match the current filter" onClick={handleGenerateAllMissingAudio} type="button" variant="secondary">
             Generate all missing audio ({missingAudioJobs.length})
           </Button>
-        </div>
-        <p className="mt-4 rounded-2xl bg-chunks-soft p-4 text-sm leading-6 text-chunks-body">
-          Queued audio files use <strong className="text-chunks-ink">sentence-audio/{'{courseId}'}/{'{lessonId}'}/{'{sentenceCode}'}-{'{language}'}.mp3</strong>. The browser only queues jobs; the secure worker/operator stores files and fills audio URLs.
-        </p>
-      </Card>
 
-      {filteredResources.map((resource) => (
-        <Card key={resource.id} className={resource.id === selectedResource?.id ? 'ring-2 ring-chunks-red' : ''}>
-          <button className="w-full text-left" onClick={() => setSelectedResourceId(resource.id)} type="button">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="font-mono text-lg font-semibold text-chunks-ink">{resource.sentence_code}</p>
-                <p className="mt-1 text-sm text-chunks-body">CVR Ω {resource.cvr_value} · {resource.approval_status}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {!resource.audio_en_url ? <StatusBadge tone="warning">Missing EN audio</StatusBadge> : <StatusBadge tone="success">EN ready</StatusBadge>}
-                {!resource.audio_vi_url ? <StatusBadge tone="warning">Missing VI audio</StatusBadge> : <StatusBadge tone="success">VI ready</StatusBadge>}
-              </div>
-            </div>
-          </button>
-        </Card>
-      ))}
+          <label className="flex min-h-11 items-center gap-2 rounded-lg border border-chunks-hairline bg-white px-3 text-sm font-semibold text-chunks-ink shadow-none">
+            Per page
+            <select
+              aria-label="Resources per page"
+              className="bg-transparent font-semibold text-chunks-red outline-none"
+              onChange={(event) => setPageSize(Number(event.target.value))}
+              value={pageSize}
+            >
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
+          </label>
+        </div>
+      </Panel>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-chunks-hairline bg-white p-3 text-sm text-chunks-body">
+        <span>
+          Showing <strong className="text-chunks-ink">{pageRangeLabel}</strong> resources for <strong className="text-chunks-ink">{getFilterLabel(filters)}</strong>.
+        </span>
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={safeCurrentPage <= 1} disabledReason="Already on the first page" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} type="button" variant="secondary">
+            Previous
+          </Button>
+          <span className="flex min-h-11 items-center rounded-full bg-chunks-soft px-4 font-semibold text-chunks-ink">
+            Page {safeCurrentPage}/{totalPages}
+          </span>
+          <Button disabled={safeCurrentPage >= totalPages} disabledReason="Already on the last page" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} type="button" variant="secondary">
+            Next
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 xl:grid-cols-2">
+        {pagedResources.map((resource) => (
+          <ResourceCard
+            isSelected={resource.id === selectedResource?.id}
+            key={resource.id}
+            metadata={metadata}
+            onSelect={() => setSelectedResourceId(resource.id)}
+            resource={resource}
+          />
+        ))}
+      </div>
 
       {selectedResource ? (
-        <Card as="form" onSubmit={handleSave}>
-          <h3 className="text-xl font-semibold text-chunks-ink">Edit selected resource</h3>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <Card as="form" id="new-resource" onSubmit={handleSave}>
+          <CardHeader>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <Badge tone="info">Inspector</Badge>
+                <h3 className="mt-3 text-xl font-semibold text-chunks-ink">Edit selected resource</h3>
+              </div>
+              <Badge tone={selectedResource.approval_status === 'approved' ? 'success' : 'warning'}>{selectedResource.approval_status}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="mt-5 grid gap-4 md:grid-cols-2">
             <SelectField label="Course" name="courseId" defaultValue={selectedResource.course_id} options={courses.map((course) => ({ label: course.title, value: course.id }))} />
             <SelectField label="Lesson" name="lessonId" defaultValue={selectedResource.lesson_id} options={lessons.map((lesson) => ({ label: lesson.title, value: lesson.id }))} />
             <SelectField label="Topic" name="sectionId" defaultValue={selectedResource.section_id ?? ''} options={sections.map((section) => ({ label: section.title, value: section.id }))} />
@@ -194,8 +256,8 @@ export function ResourceManager({ courses, lessons, onRefresh, resources, sectio
                 { label: 'Archived', value: 'archived' },
               ]}
             />
-          </div>
-          <div className="mt-5 flex flex-wrap gap-3">
+          </CardContent>
+          <CardFooter className="flex flex-wrap gap-3">
             <Button type="submit">Save resource</Button>
             <Button onClick={handleGenerateMissingAudio} type="button" variant="secondary">
               Generate missing audio securely
@@ -203,7 +265,7 @@ export function ResourceManager({ courses, lessons, onRefresh, resources, sectio
             <Button onClick={() => setIsConfirmOpen(true)} type="button" variant="secondary">
               Approve selected
             </Button>
-          </div>
+          </CardFooter>
           {statusMessage ? <Alert className="mt-5" title="Resource status" tone="success">{statusMessage}</Alert> : null}
           {error ? <Alert className="mt-5" title="Resource action failed" tone="error">{error}</Alert> : null}
         </Card>
@@ -219,6 +281,61 @@ export function ResourceManager({ courses, lessons, onRefresh, resources, sectio
         onConfirm={handleConfirmBatchApprove}
       />
     </section>
+  )
+}
+
+interface ResourceCardProps {
+  isSelected: boolean
+  metadata: ResourceMetadataMaps
+  onSelect: () => void
+  resource: SentenceResource
+}
+
+function ResourceCard({ isSelected, metadata, onSelect, resource }: ResourceCardProps) {
+  const lessonTitle = metadata.lessonById.get(resource.lesson_id) ?? 'Unassigned lesson'
+  const sectionTitle = resource.section_id ? metadata.sectionById.get(resource.section_id) ?? 'Unassigned topic' : 'No topic'
+
+  return (
+    <Card className={isSelected ? 'border-chunks-red ring-1 ring-chunks-red' : ''} padding="none">
+      <button className="w-full p-3 text-left transition hover:bg-chunks-soft/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chunks-red" onClick={onSelect} type="button">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-6 text-chunks-ink">{resource.text_en || resource.text_prompt || 'No English prompt yet.'}</p>
+            {resource.text_vi ? <p className="mt-1 truncate text-sm text-chunks-body">{resource.text_vi}</p> : null}
+            <p className="mt-2 text-xs text-chunks-muted">{lessonTitle} · {sectionTitle} · Code {resource.sentence_code}</p>
+          </div>
+          <div className="flex flex-wrap gap-2 md:justify-end">
+            {isSelected ? <Badge tone="brand">Selected</Badge> : <Badge tone={resource.approval_status === 'approved' ? 'success' : 'warning'}>{resource.approval_status}</Badge>}
+            {!resource.audio_en_url ? <Badge tone="warning">EN missing</Badge> : <Badge tone="success">EN ready</Badge>}
+            {!resource.audio_vi_url ? <Badge tone="warning">VI missing</Badge> : <Badge tone="success">VI ready</Badge>}
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <StatusTile label="CVR Ω" value={String(resource.cvr_value)} />
+          <StatusTile label="Order" value={String(resource.order_index)} />
+          <StatusTile label="Course" value={metadata.courseById.get(resource.course_id) ?? 'Course'} />
+        </div>
+      </button>
+    </Card>
+  )
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-chunks-hairline bg-white p-3 shadow-soft">
+      <p className="text-[0.65rem] font-black uppercase tracking-[0.16em] text-chunks-body">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-chunks-ink">{value}</p>
+    </div>
+  )
+}
+
+function StatusTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-chunks-hairline bg-white p-3">
+      <p className="text-[0.65rem] font-black uppercase tracking-[0.16em] text-chunks-body">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-chunks-ink">{value}</p>
+    </div>
   )
 }
 
@@ -243,6 +360,41 @@ function SelectField({
       </select>
     </label>
   )
+}
+
+interface ResourceMetadataMaps {
+  courseById: Map<string, string>
+  lessonById: Map<string, string>
+  sectionById: Map<string, string>
+}
+
+function buildMetadataMaps(courses: Course[], lessons: Lesson[], sections: LessonSection[]): ResourceMetadataMaps {
+  return {
+    courseById: new Map(courses.map((course) => [course.id, course.title])),
+    lessonById: new Map(lessons.map((lesson) => [lesson.id, lesson.title])),
+    sectionById: new Map(sections.map((section) => [section.id, section.title])),
+  }
+}
+
+function filterResourcesByScope(resources: SentenceResource[], filters: ResourceLibraryFilters): SentenceResource[] {
+  return resources.filter((resource) => {
+    if (filters.courseId && resource.course_id !== filters.courseId) return false
+    if (filters.lessonId && resource.lesson_id !== filters.lessonId) return false
+    if (filters.sectionId && resource.section_id !== filters.sectionId) return false
+    if (filters.approvalStatus !== 'all' && resource.approval_status !== filters.approvalStatus) return false
+    return true
+  })
+}
+
+function getFilterLabel(filters: ResourceLibraryFilters): string {
+  const parts: string[] = []
+  if (filters.courseId) parts.push('selected course')
+  if (filters.lessonId) parts.push('selected lesson')
+  if (filters.sectionId) parts.push('selected topic')
+  if (filters.approvalStatus !== 'all') parts.push(filters.approvalStatus)
+  if (filters.audio === 'missing-en') parts.push('missing English audio')
+  if (filters.audio === 'missing-vi') parts.push('missing Vietnamese audio')
+  return parts.length ? parts.join(' · ') : 'all resources'
 }
 
 function getErrorMessage(error: unknown): string {

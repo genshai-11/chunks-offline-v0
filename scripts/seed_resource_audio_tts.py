@@ -24,6 +24,9 @@ Examples:
   # Full Vietnamese run, resumable
   python scripts/seed_resource_audio_tts.py --language vi --batch-size 25
 
+  # Vietnamese Level B first, reading 9Router URL/key from Supabase Vault if env is unset
+  python scripts/seed_resource_audio_tts.py --language vi --course-title "Chunks-Material-Level-B" --batch-size 25 --config-source auto
+
   # English backfill only if audio_en_url is missing
   python scripts/seed_resource_audio_tts.py --language en --batch-size 25
 """
@@ -43,6 +46,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 DEFAULT_NINEROUTER_URL = "https://rbkqhml.abc-tunnel.us/v1"
 DEFAULT_BUCKET = "resource-audio"
@@ -67,14 +75,19 @@ def supabase_cmd(*args: str) -> list[str]:
 
 def run(cmd: list[str], *, input_text: str | None = None, timeout: int = 300, capture: bool = True) -> subprocess.CompletedProcess[str]:
     # Never print command env; caller must avoid putting secrets in args.
+    env = os.environ.copy()
+    env.setdefault("SUPABASE_TELEMETRY_DISABLED", "1")
     return subprocess.run(
         cmd,
         input=input_text,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         stdout=subprocess.PIPE if capture else None,
         stderr=subprocess.PIPE if capture else None,
         timeout=timeout,
         check=False,
+        env=env,
     )
 
 
@@ -144,10 +157,11 @@ def target_path(row: dict[str, Any], language: str) -> str:
     return f"audio/{course}/{lesson}/{section}/{idx:04d}_{code}.{language}.mp3"
 
 
-def fetch_jobs(language: str, limit: int | None, workdir: str) -> list[dict[str, Any]]:
+def fetch_jobs(language: str, limit: int | None, workdir: str, course_title: str | None = None) -> list[dict[str, Any]]:
     text_col = TEXT_COL_BY_LANG[language]
     audio_col = AUDIO_COL_BY_LANG[language]
     limit_sql = f"limit {int(limit)}" if limit else ""
+    course_filter_sql = f"\n  and c.title = {sql_quote(course_title)}" if course_title else ""
     sql = f"""
 select
   sr.id,
@@ -166,7 +180,7 @@ join public.lessons l on l.id = sr.lesson_id
 left join public.lesson_sections s on s.id = sr.section_id
 where sr.{text_col} is not null
   and btrim(sr.{text_col}) <> ''
-  and (sr.{audio_col} is null or btrim(sr.{audio_col}) = '')
+  and (sr.{audio_col} is null or btrim(sr.{audio_col}) = ''){course_filter_sql}
 order by c.title, l.order_index, s.order_index, sr.order_index
 {limit_sql};
 """.strip()
@@ -209,15 +223,34 @@ returning id, {audio_col};
         raise RuntimeError(f"Expected one updated row for {resource_id}, got {len(rows)}")
 
 
+def fetch_vault_secret(name: str, workdir: str) -> str | None:
+    sql = f"""
+select decrypted_secret
+from vault.decrypted_secrets
+where name = {sql_quote(name)}
+order by updated_at desc nulls last, created_at desc
+limit 1;
+""".strip()
+    rows = db_query(sql, workdir)
+    if not rows:
+        return None
+    value = rows[0].get("decrypted_secret")
+    return str(value) if value else None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate/upload missing CHUNKS resource audio via 9Router TTS.")
     parser.add_argument("--language", choices=["en", "vi"], required=True, help="Which language/audio column to seed.")
     parser.add_argument("--limit", type=int, default=None, help="Maximum number of missing rows to process.")
     parser.add_argument("--batch-size", type=int, default=25, help="Pause/report interval.")
+    parser.add_argument("--course-title", default=None, help="Optional exact course title filter, e.g. Chunks-Material-Level-B.")
     parser.add_argument("--dry-run", action="store_true", help="Show jobs and target paths without TTS/upload/DB update.")
     parser.add_argument("--bucket", default=DEFAULT_BUCKET)
     parser.add_argument("--workdir", default=DEFAULT_WORKDIR)
-    parser.add_argument("--ninerouter-url", default=os.environ.get("NINEROUTER_URL", DEFAULT_NINEROUTER_URL))
+    parser.add_argument("--ninerouter-url", default=os.environ.get("NINEROUTER_URL"))
+    parser.add_argument("--config-source", choices=["env", "vault", "auto"], default="auto", help="Where to read 9Router config from. auto prefers env, then Vault, then built-in URL default.")
+    parser.add_argument("--vault-url-name", default="ninerouter_url", help="Vault secret name for the 9Router base URL.")
+    parser.add_argument("--vault-key-name", default="ninerouter_api_key", help="Vault secret name for the 9Router API key.")
     parser.add_argument("--model", default=None, help="Override TTS model/voice id.")
     parser.add_argument("--tmp-dir", default=None, help="Optional temp audio output dir. Defaults to .tts_audio_tmp under the current project.")
     args = parser.parse_args()
@@ -226,13 +259,20 @@ def main() -> int:
     text_col = TEXT_COL_BY_LANG[args.language]
     audio_col = AUDIO_COL_BY_LANG[args.language]
 
-    jobs = fetch_jobs(args.language, args.limit, args.workdir)
+    base_url = args.ninerouter_url
+    if args.config_source in {"vault", "auto"} and not base_url:
+        base_url = fetch_vault_secret(args.vault_url_name, args.workdir)
+    if not base_url:
+        base_url = DEFAULT_NINEROUTER_URL
+
+    jobs = fetch_jobs(args.language, args.limit, args.workdir, args.course_title)
     print(json.dumps({
         "language": args.language,
         "model": model,
         "jobs": len(jobs),
         "dry_run": args.dry_run,
         "bucket": args.bucket,
+        "course_title": args.course_title,
     }, ensure_ascii=False, indent=2))
 
     if args.dry_run:
@@ -248,8 +288,13 @@ def main() -> int:
         return 0
 
     key = os.environ.get("NINEROUTER_KEY")
+    if args.config_source in {"vault", "auto"} and not key:
+        key = fetch_vault_secret(args.vault_key_name, args.workdir)
     if not key:
-        print("ERROR: NINEROUTER_KEY environment variable is required for non-dry-run.", file=sys.stderr)
+        print(
+            "ERROR: NINEROUTER_KEY environment variable or Vault secret 'ninerouter_api_key' is required for non-dry-run.",
+            file=sys.stderr,
+        )
         return 2
 
     tmp_root = Path(args.tmp_dir) if args.tmp_dir else Path(".tts_audio_tmp")
@@ -264,7 +309,7 @@ def main() -> int:
         local = tmp_root / (rid + f".{args.language}.mp3")
         try:
             print(f"[{processed+1}/{len(jobs)}] {args.language} {rid} -> {obj}")
-            tts_to_mp3(text, model, local, args.ninerouter_url, key)
+            tts_to_mp3(text, model, local, base_url, key)
             storage_cp(local, args.bucket, obj, args.workdir)
             update_audio_url(rid, audio_col, obj, args.workdir)
             processed += 1

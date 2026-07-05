@@ -25,10 +25,19 @@ export default {
           blue: 'var(--chunks-blue)',
         },
       },
+      borderRadius: {
+        'chunks-sm': 'var(--chunks-radius-sm)',
+        'chunks-md': 'var(--chunks-radius-md)',
+        'chunks-lg': 'var(--chunks-radius-lg)',
+        'chunks-xl': 'var(--chunks-radius-xl)',
+      },
       boxShadow: {
         soft: 'var(--chunks-shadow-soft)',
         hard: 'var(--chunks-shadow-hard)',
         'hard-lg': 'var(--chunks-shadow-hard-lg)',
+      },
+      spacing: {
+        'chunks-card': 'var(--chunks-space-card)',
       },
       fontFamily: {
         sans: ['var(--chunks-font-sans)', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],

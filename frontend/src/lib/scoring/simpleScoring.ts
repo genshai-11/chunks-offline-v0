@@ -1,12 +1,9 @@
 import type { LearnerPerformanceY, ResponseColor, ScoringMode } from '../domain/types'
+import { PERFORMANCE_BY_RESPONSE_COLOR } from './responseScale'
 
 export const SIMPLE_FORMULA_VERSION = 'simple-v1' as const
 
-export const DEFAULT_PERFORMANCE_BY_COLOR: Record<ResponseColor, LearnerPerformanceY> = {
-  red: 0,
-  yellow: 1,
-  green: 2,
-}
+export const DEFAULT_PERFORMANCE_BY_COLOR: Record<ResponseColor, LearnerPerformanceY> = PERFORMANCE_BY_RESPONSE_COLOR
 
 export interface SimpleScoreInput {
   responseColor: ResponseColor

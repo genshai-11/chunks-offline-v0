@@ -82,6 +82,7 @@ const capturedResponse: LearnerResponse = {
   finalized: true,
   scoring_mode_snapshot: 'simple',
   response_capture_mode_snapshot: 'assigned',
+  formula_version_snapshot: 'simple-v1',
   submitted_at: '2026-07-03T15:00:00.000Z',
   updated_at: '2026-07-03T15:00:00.000Z',
 }
@@ -93,8 +94,8 @@ describe('room session playback refinement', () => {
     FakeAudio.instances = []
     vi.mocked(loadRoomProgress).mockResolvedValue({
       summaries: [],
-      responses: [{ ...capturedResponse, learner: null, round: null }],
-      lastCapturedResponse: null,
+      responses: [],
+      lastCapturedResponse: { ...capturedResponse, learner: null, round: null },
     })
     vi.mocked(loadTeacherRoomState).mockResolvedValue({
       room: {
@@ -188,26 +189,133 @@ describe('room session playback refinement', () => {
     render(<TeacherRoomPage roomCode="ABC123" />)
 
     expect(await screen.findByText(/Sentence 1 \/ 3/i)).toBeInTheDocument()
-    expect(screen.getByText(/Next:/i).parentElement).toHaveTextContent('S002')
+    expect(screen.getByText(/Next:/i).parentElement).toHaveTextContent('Teacher detail two')
     expect(screen.getByRole('heading', { name: /teacher playback/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/English audio/i)).toBeChecked()
+    const nextButton = screen.getByRole('button', { name: /advance to next sentence/i })
+    expect(nextButton).toBeEnabled()
+    expect(nextButton).toHaveTextContent(/Next sentence/i)
+    expect(nextButton).toHaveTextContent('→')
 
-    await user.click(screen.getByRole('button', { name: /replay audio/i }))
-    expect(FakeAudio.instances.at(-1)?.src).toBe('en-1.mp3')
+    await user.click(screen.getByRole('button', { name: /replay selected audio/i }))
+    expect(FakeAudio.instances.at(-1)?.src).toContain('/storage/v1/object/public/resource-audio/en-1.mp3')
 
     await user.keyboard('{ArrowRight}')
     await waitFor(() => expect(advanceRound).toHaveBeenCalled())
+  })
+
+  it('blocks teacher advance while the open round has no captured response', async () => {
+    const user = userEvent.setup()
+    vi.mocked(loadRoomProgress).mockResolvedValue({
+      summaries: [],
+      responses: [],
+      lastCapturedResponse: null,
+    })
+    vi.mocked(loadTeacherRoomState).mockResolvedValue({
+      room: {
+        id: 'room-1',
+        room_code: 'ABC123',
+        title: 'Playback Room',
+        status: 'round_open',
+        current_round_id: 'round-1',
+        course_id: 'course-1',
+        lesson_id: 'lesson-1',
+        host_name: 'Teacher Host',
+        resource_scope_filter: { cci_standard_card_id: 'cci-1' },
+        snapshot_sentence_resource_ids: sentences.map((sentence) => sentence.id),
+        scope_refreshed_at: null,
+        scoring_mode: 'simple',
+        default_response_capture_mode: 'assigned',
+        teacher_pin_hash: null,
+        created_at: '',
+        updated_at: '',
+      },
+      roster: [
+        {
+          id: 'membership-1',
+          room_id: 'room-1',
+          learner_id: 'learner-1',
+          presence_status: 'online',
+          can_answer: true,
+          joined_at: '',
+          updated_at: '',
+          learner: {
+            id: 'learner-1',
+            auth_user_id: null,
+            display_name: 'Lucy Learner',
+            source: 'anonymous',
+            last_seen_at: '',
+            created_at: '',
+            updated_at: '',
+          },
+        },
+      ],
+      rounds: [
+        {
+          id: 'round-1',
+          room_id: 'room-1',
+          sentence_resource_id: 'sentence-1',
+          assigned_learner_id: 'learner-1',
+          captured_learner_id: null,
+          cci_standard_card_id: 'cci-1',
+          cci_standard_x: 10,
+          cvr_value: 2,
+          round_index: 1,
+          status: 'open',
+          response_capture_mode_snapshot: 'assigned',
+          scoring_mode_snapshot: 'simple',
+          opened_by: 'Teacher Host',
+          sequence_key: 'ABC123-1',
+          opened_at: '2026-07-03T15:00:00.000Z',
+          closed_at: null,
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+      currentRound: {
+        id: 'round-1',
+        room_id: 'room-1',
+        sentence_resource_id: 'sentence-1',
+        assigned_learner_id: 'learner-1',
+        captured_learner_id: null,
+        cci_standard_card_id: 'cci-1',
+        cci_standard_x: 10,
+        cvr_value: 2,
+        round_index: 1,
+        status: 'open',
+        response_capture_mode_snapshot: 'assigned',
+        scoring_mode_snapshot: 'simple',
+        opened_by: 'Teacher Host',
+        sequence_key: 'ABC123-1',
+        opened_at: '2026-07-03T15:00:00.000Z',
+        closed_at: null,
+        created_at: '',
+        updated_at: '',
+      },
+      currentSentence: sentences[0],
+      availableSentences: sentences,
+      cciCards: [{ id: 'cci-1', category_id: 'standard', label: '1-ON-1', standard_value: 10, active: true, created_at: '', updated_at: '' }],
+    })
+
+    render(<TeacherRoomPage roomCode="ABC123" />)
+
+    expect(await screen.findByText(/Waiting for one captured learner response/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /advance/i })).toBeDisabled()
+
+    await user.keyboard('{ArrowRight}')
+    expect(advanceRound).not.toHaveBeenCalled()
   })
 
   it('saves an upcoming-only resource filter while keeping played history locked', async () => {
     const user = userEvent.setup()
     render(<TeacherRoomPage roomCode="ABC123" />)
 
-    expect(await screen.findByText(/Upcoming resources/i)).toBeInTheDocument()
-    expect(screen.getByText(/Locked history/i)).toBeInTheDocument()
-    expect(screen.getAllByText('S001').length).toBeGreaterThan(0)
+    expect((await screen.findAllByText(/History & Queue/i)).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Played\/current history/i)).toBeInTheDocument()
+    expect(screen.getByText(/Review played rounds, response history, and the upcoming sentence queue/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Teacher detail one/i).length).toBeGreaterThan(0)
 
-    await user.click(screen.getByLabelText('Include S003'))
+    await user.click(screen.getByLabelText(/Include upcoming sentence Teacher detail three/i))
     await user.click(screen.getByRole('button', { name: /save upcoming filter/i }))
 
     await waitFor(() => {
@@ -217,7 +325,7 @@ describe('room session playback refinement', () => {
     })
   })
 
-  it('renders learner screen with sentence code only and hides prompt details', async () => {
+  it('renders learner screen with sentence code only and four minimal response controls', async () => {
     vi.mocked(loadLearnerRoomState).mockResolvedValue({
       room: {
         id: 'room-1',
@@ -268,16 +376,149 @@ describe('room session playback refinement', () => {
       },
       currentSentence: sentences[0],
       existingResponse: null,
+      roundHasCapturedResponse: false,
       learnerState: 'assigned',
       disabledReason: null,
     })
 
     render(<LearnerRoomPage learnerId="learner-1" roomCode="ABC123" />)
 
-    expect(await screen.findByText('S001')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'S001' })).toBeInTheDocument()
     expect(screen.queryByText('Teacher detail one')).not.toBeInTheDocument()
     expect(screen.queryByText('vi one')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /green/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /red response/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /yellow response/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /green response/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /purple response/i })).toBeEnabled()
+  })
+
+  it('shows assigned banner and response controls for first-responder learners before capture', async () => {
+    vi.mocked(loadLearnerRoomState).mockResolvedValue({
+      room: {
+        id: 'room-1',
+        room_code: 'ABC123',
+        title: 'Playback Room',
+        status: 'round_open',
+        current_round_id: 'round-1',
+        course_id: 'course-1',
+        lesson_id: 'lesson-1',
+        host_name: 'Teacher Host',
+        resource_scope_filter: {},
+        snapshot_sentence_resource_ids: ['sentence-1'],
+        scope_refreshed_at: null,
+        scoring_mode: 'simple',
+        default_response_capture_mode: 'first_responder',
+        teacher_pin_hash: null,
+        created_at: '',
+        updated_at: '',
+      },
+      membership: {
+        id: 'membership-2',
+        room_id: 'room-1',
+        learner_id: 'learner-2',
+        presence_status: 'online',
+        can_answer: true,
+        joined_at: '',
+        updated_at: '',
+      },
+      currentRound: {
+        id: 'round-1',
+        room_id: 'room-1',
+        sentence_resource_id: 'sentence-1',
+        assigned_learner_id: null,
+        captured_learner_id: null,
+        cci_standard_card_id: 'cci-1',
+        cci_standard_x: 10,
+        cvr_value: 2,
+        round_index: 1,
+        status: 'open',
+        response_capture_mode_snapshot: 'first_responder',
+        scoring_mode_snapshot: 'simple',
+        opened_by: 'Teacher Host',
+        sequence_key: 'ABC123-1',
+        opened_at: '2026-07-03T15:00:00.000Z',
+        closed_at: null,
+        created_at: '',
+        updated_at: '',
+      },
+      currentSentence: sentences[0],
+      existingResponse: null,
+      roundHasCapturedResponse: false,
+      learnerState: 'assigned',
+      disabledReason: null,
+    })
+
+    render(<LearnerRoomPage learnerId="learner-2" roomCode="ABC123" />)
+
+    expect(await screen.findByRole('heading', { name: 'S001' })).toBeInTheDocument()
+    expect(screen.getByText('You are assigned')).toBeInTheDocument()
+    expect(screen.getByText(/Choose the color icon that matches your answer when you are ready/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /red response/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /purple response/i })).toBeEnabled()
+  })
+
+  it('hides learner response controls after another learner captures the round response', async () => {
+    vi.mocked(loadLearnerRoomState).mockResolvedValue({
+      room: {
+        id: 'room-1',
+        room_code: 'ABC123',
+        title: 'Playback Room',
+        status: 'round_open',
+        current_round_id: 'round-1',
+        course_id: 'course-1',
+        lesson_id: 'lesson-1',
+        host_name: 'Teacher Host',
+        resource_scope_filter: {},
+        snapshot_sentence_resource_ids: ['sentence-1'],
+        scope_refreshed_at: null,
+        scoring_mode: 'simple',
+        default_response_capture_mode: 'first_responder',
+        teacher_pin_hash: null,
+        created_at: '',
+        updated_at: '',
+      },
+      membership: {
+        id: 'membership-2',
+        room_id: 'room-1',
+        learner_id: 'learner-2',
+        presence_status: 'online',
+        can_answer: true,
+        joined_at: '',
+        updated_at: '',
+      },
+      currentRound: {
+        id: 'round-1',
+        room_id: 'room-1',
+        sentence_resource_id: 'sentence-1',
+        assigned_learner_id: null,
+        captured_learner_id: 'learner-1',
+        cci_standard_card_id: 'cci-1',
+        cci_standard_x: 10,
+        cvr_value: 2,
+        round_index: 1,
+        status: 'open',
+        response_capture_mode_snapshot: 'first_responder',
+        scoring_mode_snapshot: 'simple',
+        opened_by: 'Teacher Host',
+        sequence_key: 'ABC123-1',
+        opened_at: '2026-07-03T15:00:00.000Z',
+        closed_at: null,
+        created_at: '',
+        updated_at: '',
+      },
+      currentSentence: sentences[0],
+      existingResponse: null,
+      roundHasCapturedResponse: true,
+      learnerState: 'observing',
+      disabledReason: 'A response has already been captured for this round.',
+    })
+
+    render(<LearnerRoomPage learnerId="learner-2" roomCode="ABC123" />)
+
+    expect(await screen.findByRole('heading', { name: 'S001' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /red response/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /purple response/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/A response has already been captured/i)).toBeInTheDocument()
   })
 })
 

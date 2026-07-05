@@ -1,8 +1,7 @@
 import { useState } from 'react'
 
 import { Alert } from '../../../components/ui/Alert'
-import { Button } from '../../../components/ui/Button'
-import { Card } from '../../../components/ui/Card'
+import { Button, Card } from '../../../components/primitives'
 import type { PracticeRoom } from '../../../lib/domain/types'
 
 interface ShareLinkCardProps {

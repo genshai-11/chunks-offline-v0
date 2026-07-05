@@ -164,8 +164,8 @@ create table if not exists public.learner_responses (
   id uuid primary key default gen_random_uuid(),
   round_id uuid not null references public.room_rounds(id) on delete cascade,
   learner_id uuid not null references public.learners(id),
-  response_color text not null check (response_color in ('red', 'yellow', 'green')),
-  performance_y integer not null check (performance_y in (0, 1, 2)),
+  response_color text not null check (response_color in ('red', 'yellow', 'green', 'purple')),
+  performance_y integer not null check (performance_y in (0, 1, 2, 3)),
   reflection_time_ms integer not null default 0,
   reflection_seconds numeric not null default 0,
   cci_standard_x numeric not null default 0,
@@ -175,6 +175,7 @@ create table if not exists public.learner_responses (
   finalized boolean not null default false,
   scoring_mode_snapshot text not null default 'simple' check (scoring_mode_snapshot in ('simple', 'timed')),
   response_capture_mode_snapshot text not null default 'assigned' check (response_capture_mode_snapshot in ('assigned', 'first_responder', 'auto_rotate')),
+  formula_version_snapshot text not null default 'simple-v1',
   submitted_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (round_id)
@@ -202,6 +203,7 @@ alter table public.learner_responses add column if not exists reflection_seconds
 alter table public.learner_responses add column if not exists cci_result numeric not null default 0;
 alter table public.learner_responses add column if not exists scoring_mode_snapshot text not null default 'simple';
 alter table public.learner_responses add column if not exists response_capture_mode_snapshot text not null default 'assigned';
+alter table public.learner_responses add column if not exists formula_version_snapshot text not null default 'simple-v1';
 
 create index if not exists idx_sentence_resources_scope on public.sentence_resources(course_id, lesson_id, section_id, approval_status, order_index);
 create index if not exists idx_practice_rooms_room_code on public.practice_rooms(room_code);

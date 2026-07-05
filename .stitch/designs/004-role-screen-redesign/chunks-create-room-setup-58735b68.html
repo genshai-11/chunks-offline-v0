@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CHUNKS - Create Room</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Public+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Public+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#fff7f6",
+                        "secondary": "#7d5900",
+                        "on-primary-fixed-variant": "#b90722",
+                        "secondary-fixed-dim": "#ffcd71",
+                        "error": "#9e422c",
+                        "tertiary-container": "#6cf6a6",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#d3dbdd",
+                        "on-surface-variant": "#596061",
+                        "secondary-fixed": "#ffdea8",
+                        "primary-dim": "#a9001d",
+                        "primary": "#bd0d25",
+                        "on-primary-fixed": "#850014",
+                        "secondary-dim": "#6e4d00",
+                        "on-secondary-fixed": "#553b00",
+                        "on-error-container": "#742410",
+                        "surface-tint": "#bd0d25",
+                        "primary-container": "#ffdad7",
+                        "tertiary-fixed": "#6cf6a6",
+                        "primary-fixed-dim": "#ffc7c3",
+                        "on-secondary": "#fff8f1",
+                        "surface-container-low": "#f2f4f4",
+                        "on-background": "#2d3435",
+                        "inverse-primary": "#ff5355",
+                        "on-surface": "#2d3435",
+                        "surface-container-highest": "#dde4e5",
+                        "on-primary-container": "#a7001d",
+                        "on-primary": "#fff6f5",
+                        "outline": "#757c7d",
+                        "surface-variant": "#dde4e5",
+                        "on-secondary-fixed-variant": "#785500",
+                        "error-container": "#fe8b70",
+                        "background": "#f9f9f9",
+                        "secondary-container": "#ffdea8",
+                        "surface-container": "#ebeeef",
+                        "on-tertiary-fixed-variant": "#00653a",
+                        "tertiary-fixed-dim": "#5de899",
+                        "tertiary-dim": "#006036",
+                        "surface-container-high": "#e4e9ea",
+                        "error-dim": "#5c1202",
+                        "on-tertiary-container": "#005b33",
+                        "tertiary": "#006e3f",
+                        "surface-bright": "#f9f9f9",
+                        "inverse-on-surface": "#9c9d9d",
+                        "outline-variant": "#acb3b4",
+                        "on-tertiary": "#e7ffeb",
+                        "on-secondary-container": "#6c4c00",
+                        "inverse-surface": "#0c0f0f",
+                        "primary-fixed": "#ffdad7",
+                        "surface": "#f9f9f9",
+                        "on-tertiary-fixed": "#004626"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Public Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #dde4e5; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col pt-6 pb-4 h-screen w-64 border-r border-outline-variant bg-surface-container-low dark:bg-surface-dim">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">view_quilt</span>
+</div>
+<div>
+<h1 class="text-xl font-headline font-black text-on-surface dark:text-on-background leading-none">CHUNKS</h1>
+<p class="text-[10px] uppercase tracking-widest font-bold text-outline">Classroom Console</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body text-label-md font-medium tracking-wide">Dashboard</span>
+</a>
+<!-- Library -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">library_books</span>
+<span class="font-body text-label-md font-medium tracking-wide">Library</span>
+</a>
+<!-- History -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-body text-label-md font-medium tracking-wide">History</span>
+</a>
+<!-- Create Room (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary-container rounded-full mx-2 transition-transform active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_box</span>
+<span class="font-body text-label-md font-medium tracking-wide">Create Room</span>
+</a>
+<!-- Live Room -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-body text-label-md font-medium tracking-wide">Live Room</span>
+</a>
+<!-- Learner -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-body text-label-md font-medium tracking-wide">Learner</span>
+</a>
+</nav>
+<div class="px-6 mt-auto border-t border-outline-variant pt-4">
+<div class="flex items-center gap-3 p-2 bg-surface-container-high rounded-xl">
+<div class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-bold text-xs">TR</div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate">Lead Instructor</p>
+<p class="text-[10px] text-outline truncate">Offline Mode: Active</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-64 z-30 flex justify-between items-center px-8 h-16 w-full border-b border-outline-variant bg-surface dark:bg-background">
+<div class="flex items-center gap-4">
+<span class="text-lg font-headline font-bold text-on-surface dark:text-on-background">CHUNKS Offline Live Room</span>
+<div class="h-4 w-px bg-outline-variant"></div>
+<h2 class="font-headline text-headline-sm font-medium text-primary">Create Room</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer focus:ring-2 focus:ring-primary rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer focus:ring-2 focus:ring-primary rounded-full">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+<div class="max-w-6xl mx-auto">
+<!-- Inside this area section -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-outline">Inside this area</h3>
+<span class="text-xs text-outline italic">Step 1 of 4</span>
+</div>
+<div class="grid grid-cols-5 gap-4">
+<!-- Navigation Cards -->
+<div class="p-4 bg-primary-container border border-primary/20 rounded-xl flex flex-col gap-2 cursor-pointer transition-all hover:shadow-sm ring-2 ring-primary">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+<p class="text-xs font-bold text-on-primary-container">Room Idea</p>
+<div class="h-1 w-full bg-primary/20 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+</div>
+<div class="p-4 bg-surface-container rounded-xl border border-transparent flex flex-col gap-2 cursor-pointer transition-all hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-outline">auto_stories</span>
+<p class="text-xs font-bold text-on-surface-variant">Course and Lesson</p>
+<div class="h-1 w-full bg-outline-variant/30 rounded-full mt-1"></div>
+</div>
+<div class="p-4 bg-surface-container rounded-xl border border-transparent flex flex-col gap-2 cursor-pointer transition-all hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-outline">biotech</span>
+<p class="text-xs font-bold text-on-surface-variant">Topic Scope</p>
+<div class="h-1 w-full bg-outline-variant/30 rounded-full mt-1"></div>
+</div>
+<div class="p-4 bg-surface-container rounded-xl border border-transparent flex flex-col gap-2 cursor-pointer transition-all hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-outline">verified_user</span>
+<p class="text-xs font-bold text-on-surface-variant">Readiness</p>
+<div class="h-1 w-full bg-outline-variant/30 rounded-full mt-1"></div>
+</div>
+<div class="p-4 bg-surface-container rounded-xl border border-transparent flex flex-col gap-2 cursor-pointer transition-all hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-outline">settings_input_component</span>
+<p class="text-xs font-bold text-on-surface-variant">Advanced Options</p>
+<div class="h-1 w-full bg-outline-variant/30 rounded-full mt-1"></div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-12 gap-8">
+<!-- Main Focal Area: Create Room Recipe Card -->
+<div class="col-span-12 lg:col-span-8">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-3xl p-8 shadow-sm">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-3xl">restaurant_menu</span>
+</div>
+<div>
+<h2 class="text-2xl font-headline font-bold">Room Recipe</h2>
+<p class="text-sm text-outline">Define the core ingredients for your live classroom session.</p>
+</div>
+</div>
+<div class="space-y-6">
+<!-- Room Title -->
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-outline ml-1">Room Title / Class Idea</label>
+<input class="w-full bg-surface-container-low border-outline-variant rounded-xl p-4 text-on-surface focus:ring-primary focus:border-primary placeholder:text-outline-variant transition-all font-medium" placeholder="e.g., Exploring Photosynthesis" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<!-- Course Dropdown -->
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-outline ml-1">Course</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-low border-outline-variant rounded-xl p-4 pr-10 text-on-surface focus:ring-primary focus:border-primary font-medium">
+<option>Biology 101</option>
+<option>General Chemistry</option>
+<option>Environmental Science</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+</div>
+</div>
+<!-- Lesson Dropdown -->
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-outline ml-1">Lesson</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-low border-outline-variant rounded-xl p-4 pr-10 text-on-surface focus:ring-primary focus:border-primary font-medium">
+<option>Unit 4: Plant Energy</option>
+<option>Unit 5: Cellular Respiration</option>
+<option>Unit 6: Ecosystems</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Selected Topics (Multi-select) -->
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-outline ml-1">Selected Topics</label>
+<div class="w-full bg-surface-container-low border-outline-variant border-dashed border-2 rounded-xl p-4 flex flex-wrap gap-2">
+<div class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border border-primary/10">
+                                        Chlorophyll
+                                        <button class="hover:bg-primary/20 rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border border-primary/10">
+                                        ATP Synthesis
+                                        <button class="hover:bg-primary/20 rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border border-primary/10">
+                                        Carbon Cycle
+                                        <button class="hover:bg-primary/20 rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<button class="bg-surface-container-highest text-on-surface-variant px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-outline-variant/20 transition-all">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                                        Add Topic
+                                    </button>
+</div>
+</div>
+<!-- Readiness Summary Stats -->
+<div class="grid grid-cols-2 gap-4 p-4 bg-surface-container rounded-2xl border border-outline-variant/50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<div>
+<p class="text-[10px] uppercase font-bold text-outline leading-none mb-1">Approved Resources</p>
+<p class="text-sm font-bold text-on-surface">12 Resources Ready</p>
+</div>
+</div>
+<div class="flex items-center gap-3 border-l border-outline-variant pl-4">
+<div class="w-10 h-10 rounded-full bg-error-container/30 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<p class="text-[10px] uppercase font-bold text-outline leading-none mb-1">Readiness Status</p>
+<p class="text-sm font-bold text-error">Incomplete - 2 gaps found</p>
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="pt-4 space-y-3">
+<button class="w-full bg-outline-variant/20 text-on-surface-variant cursor-not-allowed py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all" disabled="">
+<span class="material-symbols-outlined">lock</span>
+                                    Create Room
+                                </button>
+<div class="flex items-start gap-2 px-2">
+<span class="material-symbols-outlined text-error text-[18px] mt-0.5">info</span>
+<p class="text-xs text-error-container bg-error-dim/10 px-2 py-1 rounded font-medium">Requires at least 10 approved resources and a valid lesson scope.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Section: Advanced Options -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-low border border-outline-variant/40 rounded-3xl p-6">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-outline">tune</span>
+<h3 class="font-bold text-on-surface">Advanced Options</h3>
+</div>
+<div class="space-y-6">
+<!-- Host Name -->
+<div class="space-y-2">
+<label class="text-[11px] font-bold uppercase tracking-wider text-outline ml-1">Host Name</label>
+<input class="w-full bg-surface-bright border-outline-variant rounded-xl p-3 text-sm text-on-surface-variant focus:ring-primary font-medium" type="text" value="Prof. Anderson"/>
+</div>
+<!-- Capture Mode Toggle -->
+<div class="flex items-center justify-between p-3 bg-surface-bright border border-outline-variant rounded-xl">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-on-surface">Capture Mode</span>
+<span class="text-[10px] text-outline">Record session metrics</span>
+</div>
+<div class="relative inline-flex h-6 w-11 items-center rounded-full bg-tertiary cursor-pointer">
+<span class="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+</div>
+</div>
+<!-- CCI/Scoring Standard Dropdown -->
+<div class="space-y-2">
+<label class="text-[11px] font-bold uppercase tracking-wider text-outline ml-1">CCI/Scoring Standard</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-bright border-outline-variant rounded-xl p-3 pr-10 text-sm text-on-surface-variant focus:ring-primary font-medium">
+<option>Standard 8.4-A</option>
+<option>High Rigor CCI</option>
+<option>Internal CPD</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[20px]">unfold_more</span>
+</div>
+</div>
+<!-- Database Topic Internals -->
+<div class="space-y-2">
+<label class="text-[11px] font-bold uppercase tracking-wider text-outline ml-1">Database Topic Internals</label>
+<div class="p-3 bg-surface-container text-[11px] font-mono text-outline rounded-xl border border-outline-variant/30 leading-relaxed">
+                                    SCHEMA: photosynthesis_v2.1<br/>
+                                    UUID: 8f92-a11b-chunk<br/>
+                                    SYSLOG: OK_READY
+                                </div>
+</div>
+</div>
+</div>
+<!-- Helpful Tip Bento -->
+<div class="bg-secondary-container rounded-3xl p-6 relative overflow-hidden">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-on-secondary-container mb-2">tips_and_updates</span>
+<h4 class="font-bold text-on-secondary-container mb-1">Creative Tip</h4>
+<p class="text-sm text-on-secondary-container/80 leading-snug">Adding more than 5 topics helps the AI segment the room content more efficiently for students.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-9xl">school</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interaction for the Room Title input
+        const roomTitleInput = document.querySelector('input[type="text"]');
+        roomTitleInput.addEventListener('input', (e) => {
+            if(e.target.value.length > 5) {
+                // Potential logic to update UI state
+            }
+        });
+
+        // Toggle state simulation
+        const toggle = document.querySelector('.relative.inline-flex');
+        toggle.addEventListener('click', function() {
+            const circle = this.querySelector('span');
+            if (circle.classList.contains('translate-x-6')) {
+                circle.classList.replace('translate-x-6', 'translate-x-1');
+                this.classList.replace('bg-tertiary', 'bg-outline-variant');
+            } else {
+                circle.classList.replace('translate-x-1', 'translate-x-6');
+                this.classList.replace('bg-outline-variant', 'bg-tertiary');
+            }
+        });
+    </script>
+</body></html>

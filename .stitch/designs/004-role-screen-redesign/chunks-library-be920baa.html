@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CHUNKS Library - Classroom Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-dim": "#a9001d",
+                        "primary": "#bd0d25",
+                        "tertiary-fixed-dim": "#5de899",
+                        "secondary-container": "#ffdea8",
+                        "surface": "#f9f9f9",
+                        "on-tertiary-container": "#005b33",
+                        "on-error-container": "#742410",
+                        "background": "#f9f9f9",
+                        "tertiary": "#006e3f",
+                        "surface-container-high": "#e4e9ea",
+                        "primary-fixed-dim": "#ffc7c3",
+                        "primary-fixed": "#ffdad7",
+                        "secondary-fixed-dim": "#ffcd71",
+                        "secondary-dim": "#6e4d00",
+                        "inverse-on-surface": "#9c9d9d",
+                        "on-primary-fixed": "#850014",
+                        "secondary-fixed": "#ffdea8",
+                        "secondary": "#7d5900",
+                        "on-surface": "#2d3435",
+                        "error-container": "#fe8b70",
+                        "tertiary-container": "#6cf6a6",
+                        "surface-bright": "#f9f9f9",
+                        "on-secondary-fixed": "#553b00",
+                        "on-primary-container": "#a7001d",
+                        "outline-variant": "#acb3b4",
+                        "on-tertiary": "#e7ffeb",
+                        "on-background": "#2d3435",
+                        "tertiary-fixed": "#6cf6a6",
+                        "on-error": "#fff7f6",
+                        "on-secondary-fixed-variant": "#785500",
+                        "error": "#9e422c",
+                        "on-surface-variant": "#596061",
+                        "tertiary-dim": "#006036",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-dim": "#d3dbdd",
+                        "error-dim": "#5c1202",
+                        "on-secondary": "#fff8f1",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#0c0f0f",
+                        "on-primary": "#fff6f5",
+                        "outline": "#757c7d",
+                        "surface-variant": "#dde4e5",
+                        "on-tertiary-fixed-variant": "#00653a",
+                        "primary-container": "#ffdad7",
+                        "on-tertiary-fixed": "#004626",
+                        "on-secondary-container": "#6c4c00",
+                        "on-primary-fixed-variant": "#b90722",
+                        "inverse-primary": "#ff5355",
+                        "surface-container": "#ebeeef",
+                        "surface-container-highest": "#dde4e5",
+                        "surface-tint": "#bd0d25"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Public Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dde4e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #acb3b4; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col pt-6 pb-4 h-screen w-64 border-r border-outline-variant bg-surface-container-low">
+<div class="px-6 mb-8">
+<h1 class="text-xl font-headline font-black text-on-surface">CHUNKS</h1>
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant opacity-70">Classroom Console</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body text-label-md font-medium tracking-wide">Dashboard</span>
+</a>
+<!-- Active Tab: Library -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary-container rounded-full mx-2 transition-transform scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">library_books</span>
+<span class="font-body text-label-md font-medium tracking-wide">Library</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-body text-label-md font-medium tracking-wide">History</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">add_box</span>
+<span class="font-body text-label-md font-medium tracking-wide">Create Room</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-body text-label-md font-medium tracking-wide">Live Room</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-body text-label-md font-medium tracking-wide">Learner</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<div class="p-3 bg-surface-container-high rounded-xl flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">CH</div>
+<div>
+<p class="text-xs font-bold leading-none">Admin Console</p>
+<p class="text-[10px] text-on-surface-variant">v2.4.0-Offline</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-64 z-30 flex justify-between items-center px-8 h-16 w-full border-b border-outline-variant bg-surface">
+<div class="flex items-center gap-4">
+<span class="text-lg font-headline font-bold text-on-surface">CHUNKS Offline Live Room</span>
+<div class="h-4 w-px bg-outline-variant"></div>
+<span class="text-sm font-medium text-on-surface-variant">Resource Library</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:text-primary transition-colors cursor-pointer focus:ring-2 focus:ring-primary rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors cursor-pointer focus:ring-2 focus:ring-primary rounded-full">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<!-- Canvas -->
+<div class="mt-16 p-8 flex-1 overflow-y-auto">
+<!-- Inside This Area Section -->
+<section class="mb-8">
+<h2 class="text-sm font-label font-semibold text-on-surface-variant uppercase tracking-wider mb-4">Inside this area</h2>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant hover:border-primary transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-primary mb-2">folder_open</span>
+<h3 class="font-bold text-sm">Resources</h3>
+<p class="text-xs text-on-surface-variant mt-1">Manage lesson files and assets.</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant hover:border-primary transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary mb-2">verified</span>
+<h3 class="font-bold text-sm">Standards</h3>
+<p class="text-xs text-on-surface-variant mt-1">CCI and CVR alignment check.</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant hover:border-primary transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary mb-2">volume_up</span>
+<h3 class="font-bold text-sm">Audio Readiness</h3>
+<p class="text-xs text-on-surface-variant mt-1">EN/VI voiceover status.</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant hover:border-primary transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary mb-2">route</span>
+<h3 class="font-bold text-sm">History Path</h3>
+<p class="text-xs text-on-surface-variant mt-1">Trace resource modifications.</p>
+</div>
+</div>
+</section>
+<!-- Map Summary & Filters -->
+<section class="bg-surface-container-low border border-outline-variant rounded-2xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Total Resources</span>
+<span class="text-2xl font-mono font-bold text-on-surface">1,284</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Audio Ready</span>
+<span class="text-2xl font-mono font-bold text-tertiary">92%</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">CCI Compliance</span>
+<span class="text-2xl font-mono font-bold text-primary">88%</span>
+</div>
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<div class="relative flex-1 md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-full text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="Search by topic or ID..." type="text"/>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-highest text-on-surface border border-outline-variant rounded-full text-xs font-medium hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filter
+                    </button>
+</div>
+</section>
+<!-- Two-Column Layout -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Main Column: Resource Manager (75%) -->
+<div class="col-span-12 lg:col-span-9 space-y-4">
+<div class="flex items-center justify-between px-2">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Resource Manager</h4>
+<span class="text-[10px] text-on-surface-variant">Showing 42 items this lesson</span>
+</div>
+<!-- Resource Item 1: Selected -->
+<div class="bg-surface-container-lowest border-2 border-primary rounded-xl p-4 shadow-sm relative">
+<div class="absolute top-4 left-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="ml-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant">ID: R-00421</span>
+<span class="text-[10px] font-bold text-primary uppercase">Lesson 12: Ecosystems</span>
+</div>
+<p class="text-sm font-medium text-on-surface italic">"The primary producers in this biome convert sunlight into chemical energy..."</p>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-on-surface-variant mb-1">Audio EN/VI</span>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-tertiary" title="EN Ready"></div>
+<div class="w-2 h-2 rounded-full bg-tertiary" title="VI Ready"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-on-surface-variant mb-1">Status</span>
+<span class="text-[10px] px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-full font-bold">APPROVED</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Resource Item 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 hover:border-primary-dim transition-colors group">
+<div class="flex items-start md:items-center justify-between gap-4">
+<div class="flex items-center gap-4 flex-1">
+<div class="w-6 h-6 border border-outline-variant rounded-full flex items-center justify-center group-hover:border-primary"></div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant">ID: R-00422</span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Lesson 12: Ecosystems</span>
+</div>
+<p class="text-sm font-medium text-on-surface-variant">"Identify three types of consumers within the food chain illustrated above."</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-on-surface-variant mb-1">Audio EN/VI</span>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-tertiary" title="EN Ready"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant" title="VI Pending"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-on-surface-variant mb-1">Status</span>
+<span class="text-[10px] px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full font-bold uppercase">Pending Review</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Resource Item 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 hover:border-primary-dim transition-colors group">
+<div class="flex items-start md:items-center justify-between gap-4">
+<div class="flex items-center gap-4 flex-1">
+<div class="w-6 h-6 border border-outline-variant rounded-full flex items-center justify-center group-hover:border-primary"></div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-mono bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant">ID: R-00423</span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Lesson 12: Ecosystems</span>
+</div>
+<p class="text-sm font-medium text-on-surface-variant">"The nitrogen cycle is critical for protein synthesis in all living organisms."</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-on-surface-variant mb-1">Audio EN/VI</span>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-error" title="EN Missing"></div>
+<div class="w-2 h-2 rounded-full bg-error" title="VI Missing"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-on-surface-variant mb-1">Status</span>
+<span class="text-[10px] px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full font-bold uppercase">Pending Review</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Footer of List -->
+<div class="pt-4 flex justify-center">
+<button class="text-xs font-bold text-primary hover:underline px-6 py-2">Load More Resources</button>
+</div>
+</div>
+<!-- Secondary Column: Standards (25%) -->
+<div class="col-span-12 lg:col-span-3 space-y-6">
+<div>
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4 px-2">Standards alignment</h4>
+<div class="space-y-3">
+<!-- CCI Card 1 -->
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold bg-primary text-white px-2 py-0.5 rounded">CCI-04</span>
+<span class="text-xs font-mono font-bold text-on-surface">94% Match</span>
+</div>
+<h5 class="text-xs font-bold mb-1">Conceptual Complexity</h5>
+<p class="text-[10px] text-on-surface-variant leading-relaxed">Evaluation of abstract concept density per chunk. High precision index required.</p>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-[10px] font-mono text-on-surface-variant">CVR: 0.88</span>
+<div class="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 88%"></div>
+</div>
+</div>
+</div>
+<!-- CCI Card 2 -->
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold bg-secondary-dim text-white px-2 py-0.5 rounded">CCI-07</span>
+<span class="text-xs font-mono font-bold text-on-surface">72% Match</span>
+</div>
+<h5 class="text-xs font-bold mb-1">Verbal Recall Index</h5>
+<p class="text-[10px] text-on-surface-variant leading-relaxed">Predictive score for learner retention after offline live session delivery.</p>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-[10px] font-mono text-on-surface-variant">CVR: 0.64</span>
+<div class="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 64%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Compact Image Placeholder for Area Context -->
+<div class="rounded-2xl overflow-hidden border border-outline-variant h-40 relative group">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="A clean, minimalist high-tech educational laboratory setup for content creators. Soft focus on a recording microphone and a monitor showing audio waveforms. The room is styled in a white and light grey professional classroom aesthetic with subtle red highlights. Soft directional lighting creates a focused and calm workspace environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1mstknqw8JRYAjzRKPRijFergCj6Bwf0VziHQt6ifq2eIHfok_n7bVr297P9XQwGVwf2iZM_uX02HayNwDI5MLWbkdzeFvWWnvfcH2Z6jIKUDRqMJ7zcq75D3E1rquWOmZvRJCVd774ufxC2KesivuaCaEOrgFDnPeA7VZK_TQA6i-S5rfEh6A2JriZCOPf04qd2uPl2SK6-VJusfyA2ttDurjS5gpLQsE7eqmXdVv-eiV-6muSPlsmN-9t0wCwnD0FoE8Uh-OMgv"/>
+<div class="absolute inset-0 bg-primary/10 mix-blend-multiply"></div>
+<div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold uppercase">Laboratory Preview</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Batch Action Area -->
+<footer class="mt-auto bg-surface-container-highest border-t border-outline-variant p-6 flex items-center justify-between z-20">
+<div class="flex items-center gap-6">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-highest bg-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container text-xs">mic</span>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-highest bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container text-xs">translate</span>
+</div>
+</div>
+<div>
+<p class="text-xs font-bold">1 Resource Selected</p>
+<p class="text-[10px] text-on-surface-variant">Pending Batch Approval Confirmation</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-6 py-2.5 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors uppercase tracking-widest">
+                    Clear Selection
+                </button>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-6 py-2.5 bg-surface-container-lowest border border-outline-variant text-on-surface rounded-full text-xs font-bold hover:bg-white transition-all shadow-sm">
+<span class="material-symbols-outlined text-sm">record_voice_over</span>
+                        Generate Audio
+                    </button>
+<button class="flex items-center gap-2 px-8 py-2.5 bg-primary text-white rounded-full text-xs font-bold hover:bg-primary-dim transition-all shadow-lg">
+                        Confirm Approval
+                    </button>
+</div>
+</div>
+</footer>
+</main>
+<script>
+        // Simple micro-interaction for active states
+        document.querySelectorAll('.group').forEach(item => {
+            item.addEventListener('click', () => {
+                // Toggle logic placeholder
+                console.log('Interaction detected on library resource');
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+</body></html>

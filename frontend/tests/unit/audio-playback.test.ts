@@ -63,11 +63,12 @@ describe('audioPlayback', () => {
     expect(clampPlaybackRate(Number.NaN)).toBe(1)
   })
 
-  it('resolves sentence audio URL by language with legacy English fallback only', () => {
-    expect(getSentenceAudioUrl(sentence, 'en')).toBe('en.mp3')
-    expect(getSentenceAudioUrl(sentence, 'vi')).toBe('vi.mp3')
+  it('resolves sentence audio URL by language and normalizes relative storage paths', () => {
+    expect(getSentenceAudioUrl(sentence, 'en')).toContain('/storage/v1/object/public/resource-audio/en.mp3')
+    expect(getSentenceAudioUrl(sentence, 'vi')).toContain('/storage/v1/object/public/resource-audio/vi.mp3')
     expect(getSentenceAudioUrl(sentence, 'none')).toBeNull()
-    expect(getSentenceAudioUrl({ ...sentence, audio_en_url: null }, 'en')).toBe('legacy.mp3')
+    expect(getSentenceAudioUrl({ ...sentence, audio_en_url: null }, 'en')).toContain('/storage/v1/object/public/resource-audio/legacy.mp3')
+    expect(getSentenceAudioUrl({ ...sentence, audio_vi_url: null, audio_variants: { vi: 'variants/vi.mp3' } }, 'vi')).toContain('/storage/v1/object/public/resource-audio/variants/vi.mp3')
     expect(getSentenceAudioUrl({ ...sentence, audio_vi_url: null }, 'vi')).toBeNull()
   })
 

@@ -161,7 +161,14 @@ export async function requestAudioGenerationBatch(
   const result = await client
     .from('audio_generation_jobs')
     .upsert(rows, { ignoreDuplicates: true, onConflict: 'resource_id,language,storage_path' })
-  if (result.error) throw mapSupabaseError(result.error)
+  if (result.error) {
+    if (isMissingAudioGenerationJobsTableError(result.error)) {
+      throw new Error(
+        'Audio generation queue table is not installed in Supabase yet. Apply supabase/migrations/003_audio_generation_jobs.sql, then retry this action.',
+      )
+    }
+    throw mapSupabaseError(result.error)
+  }
 
   return {
     queuedCount: rows.length,
@@ -206,6 +213,11 @@ export function filterResourcesByAudio(resources: SentenceResource[], filter: 'a
   if (filter === 'missing-en') return resources.filter((resource) => !resource.audio_en_url)
   if (filter === 'missing-vi') return resources.filter((resource) => !resource.audio_vi_url)
   return resources
+}
+
+function isMissingAudioGenerationJobsTableError(error: { code?: string; message?: string; details?: string }): boolean {
+  const text = `${error.code ?? ''} ${error.message ?? ''} ${error.details ?? ''}`.toLowerCase()
+  return text.includes('audio_generation_jobs') && (text.includes('404') || text.includes('not found') || text.includes('does not exist') || text.includes('schema cache'))
 }
 
 function sanitizePathPart(value: string | null | undefined): string {

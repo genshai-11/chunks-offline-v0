@@ -8,5 +8,6 @@ export default defineConfig({
     exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**'],
     globals: true,
     setupFiles: ['./tests/setup/vitest.setup.ts'],
+    testTimeout: 15000,
   },
 })

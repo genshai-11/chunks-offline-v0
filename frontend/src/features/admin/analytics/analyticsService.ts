@@ -17,6 +17,7 @@ export interface AdminLearnerAnalyticsRow {
   averageReflectionSeconds: number
   greenCount: number
   learnerName: string
+  purpleCount: number
   redCount: number
   responseCount: number
   totalCpd: number
@@ -129,6 +130,7 @@ export function buildSessionAnalytics({
       averageReflectionSeconds: learnerResponses.length ? roundTo(totalReflection / learnerResponses.length, 2) : 0,
       greenCount: learnerResponses.filter((response) => response.response_color === 'green').length,
       learnerName: learnerNameById.get(learnerId) ?? 'Unknown learner',
+      purpleCount: learnerResponses.filter((response) => response.response_color === 'purple').length,
       redCount: learnerResponses.filter((response) => response.response_color === 'red').length,
       responseCount: learnerResponses.length,
       totalCpd: roundTo(totalCpd, 2),

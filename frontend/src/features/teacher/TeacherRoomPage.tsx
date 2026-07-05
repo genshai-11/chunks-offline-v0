@@ -5,8 +5,9 @@ import { ActionDock } from '../../components/layout/ActionDock'
 import { AppShell } from '../../components/layout/AppShell'
 import { WorkspaceLayout } from '../../components/layout/WorkspaceLayout'
 import { Alert } from '../../components/ui/Alert'
-import { Button } from '../../components/ui/Button'
 import { CollapsiblePanel } from '../../components/ui/CollapsiblePanel'
+import { Badge, Button, Card } from '../../components/primitives'
+import type { SentenceResource } from '../../lib/domain/types'
 import { subscribeToRoomState, unsubscribeFromRoomState } from '../../lib/supabase/realtime'
 import {
   BrowserAudioPlaybackAdapter,
@@ -39,6 +40,7 @@ import { CapturedResponsePanel } from './components/CapturedResponsePanel'
 import { ShareLinkCard } from './components/ShareLinkCard'
 import { TeacherAudioControls } from './components/TeacherAudioControls'
 import { TeacherRoster } from './components/TeacherRoster'
+import { RoomHistorySummary } from './components/RoomHistorySummary'
 
 interface TeacherRoomPageProps {
   roomCode: string
@@ -58,6 +60,21 @@ function getCurrentSentenceIndex(state: TeacherRoomState | null): number {
   return index >= 0 ? index + 1 : 0
 }
 
+function getSentenceText(sentence: SentenceResource): string {
+  return sentence.text_en ?? sentence.text_prompt ?? sentence.text_vi ?? 'No sentence text available.'
+}
+
+function getSentenceSnippet(sentence: SentenceResource, maxLength = 92): string {
+  const text = getSentenceText(sentence)
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text
+}
+
+function getAudioReadiness(sentence: SentenceResource): string {
+  const en = sentence.audio_en_url || sentence.audio_url ? 'EN ready' : 'EN missing'
+  const vi = sentence.audio_vi_url ? 'VI ready' : 'VI missing'
+  return `${en} · ${vi}`
+}
+
 export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps) {
   const [state, setState] = useState<TeacherRoomState | null>(null)
   const [assignedLearnerId, setAssignedLearnerId] = useState<string | null>(null)
@@ -72,6 +89,7 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
   const [autoPlayAudio, setAutoPlayAudio] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+  const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'live' | 'error' | 'reconnecting'>('connecting')
   const playbackRef = useRef<BrowserAudioPlaybackAdapter | null>(null)
 
   const refreshProgress = useCallback(async (roomId: string) => {
@@ -113,12 +131,14 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
 
   useEffect(() => {
     if (!state?.room.id) return undefined
+    setRealtimeStatus('connecting')
     const channel = subscribeToRoomState({
       roomId: state.room.id,
       onChange: () => {
         void refreshState().catch((subscriptionError: unknown) => setError(getErrorMessage(subscriptionError)))
       },
       onReconnect: async () => {
+        setRealtimeStatus('live')
         await refreshState()
       },
     })
@@ -132,8 +152,12 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
     if (!state?.room.id) return undefined
     const channel = subscribeToProgressUpdates({
       roomId: state.room.id,
-      onChange: () => {
+      onChange: (event) => {
         void refreshProgress(state.room.id).catch((subscriptionError: unknown) => setError(getErrorMessage(subscriptionError)))
+        // T109: Membership changes (learner join) should also refresh main state for roster visibility
+        if (event?.table === 'room_memberships') {
+          void refreshState().catch((subscriptionError: unknown) => setError(getErrorMessage(subscriptionError)))
+        }
       },
       onReconnect: async () => {
         await refreshProgress(state.room.id)
@@ -167,8 +191,12 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
       })
     : null
   const nextAssignedLearnerName = state?.roster.find((member) => member.learner_id === nextAssignedLearnerId)?.learner?.display_name
+  const currentRoundId = state?.currentRound?.id ?? null
   const hasCapturedCurrentRound = Boolean(
-    state?.currentRound && progressState?.responses.some((response) => response.round_id === state.currentRound?.id),
+    currentRoundId &&
+      (state?.currentRound?.captured_learner_id ||
+        progressState?.responses.some((response) => response.round_id === currentRoundId) ||
+        progressState?.lastCapturedResponse?.round_id === currentRoundId),
   )
   const canOpen = Boolean(
     state &&
@@ -179,7 +207,12 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
       (!requiresAssignedRound || nextAssignedLearnerId),
   )
   const canClose = Boolean(state?.currentRound?.status === 'open')
-  const canAdvance = Boolean(state && nextSentence && state.room.status !== 'finished')
+  const canAdvance = Boolean(
+    state &&
+      nextSentence &&
+      state.room.status !== 'finished' &&
+      (state.currentRound?.status !== 'open' || hasCapturedCurrentRound),
+  )
 
   function getPlayback() {
     playbackRef.current ??= new BrowserAudioPlaybackAdapter()
@@ -259,7 +292,7 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
   }
 
   function handleAdvanceRound() {
-    if (!state) return
+    if (!state || !canAdvance) return
     void runAction(async () => {
       await advanceRound(state, {
         assignedLearnerId: resolveNextRoundLearnerId(state),
@@ -274,10 +307,6 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
 
   function handleKeyboardAdvance() {
     if (!canAdvance || isWorking) return
-    if (state?.currentRound?.status === 'open' && !hasCapturedCurrentRound) {
-      const confirmed = window.confirm('Advance without a captured response for this round?')
-      if (!confirmed) return
-    }
     handleAdvanceRound()
   }
 
@@ -340,10 +369,10 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
       description="Keep the sentence window in focus while roster, share link, and round settings can collapse when the classroom gets busy."
       eyebrow="Live Room Control"
       headerMeta={
-        <div className="theme-card border border-chunks-hairline bg-white p-4 shadow-soft">
-          <p className="text-sm font-semibold text-chunks-body">Room status</p>
-          <p className="mt-2 text-xl font-semibold text-chunks-ink">{roomStatus}</p>
-        </div>
+        <Card className="space-y-2" padding="sm" variant="surface">
+          <Badge tone={roomStatus === 'finished' ? 'neutral' : 'success'}>Room status</Badge>
+          <p className="text-xl font-semibold text-chunks-ink">{roomStatus}</p>
+        </Card>
       }
       statusLabel={roomCode}
       themeControl={themeControl}
@@ -352,6 +381,10 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
       {isLoading ? <Alert className="mb-5" title="Loading live room">Fetching room, roster, and current round.</Alert> : null}
       {error ? <Alert className="mb-5" tone="error" title="Live room action failed">{error}</Alert> : null}
       {resourceFilterMessage ? <Alert className="mb-5" title="Resource filter updated">{resourceFilterMessage}</Alert> : null}
+
+      <div className="mb-3 text-xs uppercase tracking-widest text-chunks-body">
+        Realtime: <span className={realtimeStatus === 'live' ? 'font-semibold text-emerald-600' : 'text-amber-600'}>{realtimeStatus}</span>
+      </div>
 
       {state ? (
         <WorkspaceLayout
@@ -391,21 +424,66 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
                     <span className="block">
                       {requiresAssignedRound && !nextAssignedLearnerId
                         ? 'Choose or wait for an eligible learner before opening this assigned/auto-rotate round.'
-                        : `Shortcuts: R replay, S/Esc stop, → advance after response.${nextAssignedLearnerName ? ` Next learner: ${nextAssignedLearnerName}.` : ''}`}
+                        : state.currentRound?.status === 'open' && !hasCapturedCurrentRound
+                          ? 'Waiting for one captured learner response before the next sentence can open.'
+                          : `Shortcuts: R replay, S/Esc stop, → advance after response.${nextAssignedLearnerName ? ` Next learner: ${nextAssignedLearnerName}.` : ''}`}
                     </span>
                   </span>
                 }
               >
-                <Button disabled={!canOpen || isWorking} onClick={handleOpenRound} type="button">
+                <Button
+                  disabled={!canOpen || isWorking}
+                  disabledReason={
+                    isWorking
+                      ? 'Another room action is running'
+                      : state.currentRound?.status === 'open'
+                        ? 'A round is already open'
+                        : !nextSentence
+                          ? 'No upcoming sentence is available'
+                          : requiresAssignedRound && !nextAssignedLearnerId
+                            ? 'Choose or wait for an eligible learner before opening this assigned round'
+                            : undefined
+                  }
+                  onClick={handleOpenRound}
+                  type="button"
+                >
                   Open round
                 </Button>
-                <Button disabled={!canClose || isWorking} onClick={handleCloseRound} type="button" variant="secondary">
+                <Button
+                  disabled={!canClose || isWorking}
+                  disabledReason={isWorking ? 'Another room action is running' : 'Round closed'}
+                  onClick={handleCloseRound}
+                  type="button"
+                  variant="secondary"
+                >
                   Close round
                 </Button>
-                <Button disabled={!canAdvance || isWorking} onClick={handleAdvanceRound} type="button" variant="secondary">
-                  Advance
+                <Button
+                  aria-label="Advance to next sentence"
+                  disabled={!canAdvance || isWorking}
+                  disabledReason={
+                    isWorking
+                      ? 'Another room action is running'
+                      : !nextSentence
+                        ? 'No upcoming sentence is available'
+                        : state.currentRound?.status === 'open' && !hasCapturedCurrentRound
+                          ? 'Capture one learner response before advancing to the next sentence'
+                          : undefined
+                  }
+                  iconRight={<span aria-hidden="true">→</span>}
+                  onClick={handleAdvanceRound}
+                  type="button"
+                  variant={canAdvance ? 'primary' : 'secondary'}
+                >
+                  Next sentence
                 </Button>
-                <Button disabled={isWorking || state.room.status === 'finished'} onClick={handleFinishRoom} type="button" variant="secondary">
+                <Button
+                  disabled={isWorking || state.room.status === 'finished'}
+                  disabledReason={state.room.status === 'finished' ? 'Room is already finished' : isWorking ? 'Another room action is running' : undefined}
+                  onClick={handleFinishRoom}
+                  type="button"
+                  variant="secondary"
+                >
                   Finish room
                 </Button>
               </ActionDock>
@@ -445,22 +523,27 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
                   onAssignedLearnerChange={setAssignedLearnerId}
                 />
               </CollapsiblePanel>
-              <CollapsiblePanel panelId="teacher-room-resource-filter" summary={resourceFilterSummary} title="Upcoming resources">
+              <RoomHistorySummary progressState={progressState} state={state} upcomingCount={upcomingSentences.length} />
+              <CollapsiblePanel panelId="teacher-room-resource-filter" summary={resourceFilterSummary} title="History & Queue">
                 <div className="space-y-4 text-sm text-chunks-body">
                   <p>
-                    Filter only unplayed resources for the rest of this room. Completed/current rounds stay locked in the
-                    original snapshot order.
+                    Manage this room history and queue here. Played/current rounds stay locked in the original snapshot order;
+                    only unplayed upcoming resources can be filtered.
                   </p>
 
                   {lockedSentences.length ? (
                     <div className="rounded-2xl bg-chunks-soft p-3">
-                      <p className="font-semibold text-chunks-ink">Locked history</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-chunks-muted">played/current</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-semibold text-chunks-ink">Played/current history</p>
+                        <Badge tone="neutral">played/current</Badge>
+                      </div>
+                      <div className="mt-3 grid gap-2">
                         {lockedSentences.map((sentence) => (
-                          <span key={sentence.id} className="rounded-full border border-chunks-hairline bg-white px-3 py-1 font-semibold text-chunks-ink">
-                            {sentence.sentence_code}
-                          </span>
+                          <div key={sentence.id} className="rounded-2xl border border-chunks-hairline bg-white p-3">
+                            <p className="text-sm font-semibold leading-5 text-chunks-ink">{getSentenceSnippet(sentence)}</p>
+                            {sentence.text_vi ? <p className="mt-1 text-xs leading-5 text-chunks-body">{getSentenceSnippet({ ...sentence, text_en: sentence.text_vi, text_prompt: null }, 72)}</p> : null}
+                            <p className="mt-2 text-xs text-chunks-muted">Code {sentence.sentence_code} · Order {sentence.order_index} · {getAudioReadiness(sentence)}</p>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -489,19 +572,19 @@ export function TeacherRoomPage({ roomCode, themeControl }: TeacherRoomPageProps
                     <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                       {upcomingSentences.map((sentence) => (
                         <label
-                          className="flex min-h-12 items-center gap-3 rounded-2xl border border-chunks-hairline bg-white px-3 py-2"
+                          className="flex min-h-12 items-start gap-3 rounded-2xl border border-chunks-hairline bg-white px-3 py-3"
                           key={sentence.id}
                         >
                           <input
-                            aria-label={`Include ${sentence.sentence_code}`}
+                            aria-label={`Include upcoming sentence ${getSentenceSnippet(sentence, 60)}`}
                             checked={selectedUpcomingSentenceIds.includes(sentence.id)}
-                            className="h-5 w-5 accent-[var(--chunks-accent)]"
+                            className="mt-1 h-5 w-5 accent-[var(--chunks-accent)]"
                             onChange={(event) => toggleUpcomingSentence(sentence.id, event.target.checked)}
                             type="checkbox"
                           />
-                          <span>
-                            <strong className="text-chunks-ink">{sentence.sentence_code}</strong>
-                            <span className="block text-xs text-chunks-muted">Upcoming · order {sentence.order_index}</span>
+                          <span className="min-w-0">
+                            <strong className="block text-sm leading-5 text-chunks-ink">{getSentenceSnippet(sentence)}</strong>
+                            <span className="mt-1 block text-xs text-chunks-muted">Code {sentence.sentence_code} · Upcoming order {sentence.order_index} · {getAudioReadiness(sentence)}</span>
                           </span>
                         </label>
                       ))}

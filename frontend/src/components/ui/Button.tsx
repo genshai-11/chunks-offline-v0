@@ -1,40 +1,39 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react'
 
+import { Button as PrimitiveButton, ButtonLink as PrimitiveButtonLink } from '../primitives'
+import type { PrimitiveSize, PrimitiveVariant } from '../primitives'
+
 type Variant = 'primary' | 'secondary'
 
-const variantClassName: Record<Variant, string> = {
-  primary: 'bg-chunks-red text-white hover:bg-chunks-red-active',
-  secondary: 'bg-chunks-control text-chunks-ink hover:bg-chunks-hairline',
+const variantMap: Record<Variant, PrimitiveVariant> = {
+  primary: 'primary',
+  secondary: 'secondary',
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
   variant?: Variant
+  size?: PrimitiveSize
 }
 
 interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   children: ReactNode
   variant?: Variant
+  size?: PrimitiveSize
 }
 
-export function Button({ children, className = '', variant = 'primary', ...props }: ButtonProps) {
+export function Button({ children, variant = 'primary', ...props }: ButtonProps) {
   return (
-    <button
-      className={`theme-button inline-flex min-h-11 items-center justify-center rounded-full px-6 py-3 font-semibold transition disabled:cursor-not-allowed disabled:bg-chunks-red-disabled ${variantClassName[variant]} ${className}`}
-      {...props}
-    >
+    <PrimitiveButton variant={variantMap[variant]} {...props}>
       {children}
-    </button>
+    </PrimitiveButton>
   )
 }
 
-export function ButtonLink({ children, className = '', variant = 'primary', ...props }: ButtonLinkProps) {
+export function ButtonLink({ children, variant = 'primary', ...props }: ButtonLinkProps) {
   return (
-    <a
-      className={`theme-button inline-flex min-h-11 items-center justify-center rounded-full px-6 py-3 font-semibold transition ${variantClassName[variant]} ${className}`}
-      {...props}
-    >
+    <PrimitiveButtonLink variant={variantMap[variant]} {...props}>
       {children}
-    </a>
+    </PrimitiveButtonLink>
   )
 }

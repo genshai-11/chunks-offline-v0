@@ -1,7 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AdminWorkspacePage } from '../../src/features/admin/AdminWorkspacePage'
+import { HistoryPage } from '../../src/features/admin/HistoryPage'
 import { loadSessionAnalytics } from '../../src/features/admin/analytics/analyticsService'
 import { loadCciAdminData, saveCciStandardCard } from '../../src/features/admin/cci/cciService'
 import { loadCvrUnits, saveCvrUnit } from '../../src/features/admin/cvr/cvrService'
@@ -30,21 +31,28 @@ describe('Admin session analytics', () => {
       totals: { responseCount: 3, totalCpd: 70, averageReflectionSeconds: 1.85 },
       rooms: [{ roomCode: 'ROOM01', title: 'Demo Room', responseCount: 3, totalCpd: 70, averageCpd: 23.33, completedRounds: 3 }],
       learners: [
-        { learnerName: 'An', responseCount: 2, redCount: 0, yellowCount: 1, greenCount: 1, totalCpd: 70, averageReflectionSeconds: 1.85 },
+        { learnerName: 'An', responseCount: 2, redCount: 0, yellowCount: 1, greenCount: 1, purpleCount: 0, totalCpd: 70, averageReflectionSeconds: 1.85 },
       ],
     })
     vi.mocked(saveCvrUnit).mockResolvedValue({ id: 'cvr-1', label: 'Default', unit_symbol: 'Ω', value: 1, active: true, created_at: '', updated_at: '' })
     vi.mocked(saveCciStandardCard).mockResolvedValue({ id: 'card-1', category_id: 'fluency', label: 'Clear response', standard_value: 10, active: true, created_at: '', updated_at: '' })
   })
 
-  it('shows room/session and learner response analytics', async () => {
-    render(<AdminWorkspacePage />)
+  it('filters history by sessions or learners without mixing Library content', async () => {
+    const user = userEvent.setup()
+    render(<HistoryPage />)
 
-    const analytics = await screen.findByRole('region', { name: /session analytics/i })
-    expect(within(analytics).getByText('3')).toBeInTheDocument()
-    expect(within(analytics).getByText('70')).toBeInTheDocument()
-    expect(within(analytics).getByText('ROOM01')).toBeInTheDocument()
-    expect(within(analytics).getByText('An')).toBeInTheDocument()
-    expect(within(analytics).getByText(/green 1/i)).toBeInTheDocument()
+    const analytics = await screen.findByRole('region', { name: /history and analytics/i })
+    expect(within(analytics).getAllByText('3').length).toBeGreaterThanOrEqual(1)
+    expect(within(analytics).getAllByText('70').length).toBeGreaterThanOrEqual(1)
+    expect(within(analytics).getByText(/ROOM01/i)).toBeInTheDocument()
+    expect(within(analytics).queryByText('An')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /resource library/i })).not.toBeInTheDocument()
+
+    await user.click(within(analytics).getByRole('tab', { name: /learners/i }))
+    const learnerRow = within(analytics).getByText('An').closest('article') as HTMLElement
+    expect(learnerRow).toBeInTheDocument()
+    expect(within(learnerRow).getByText('Green')).toBeInTheDocument()
+    expect(within(learnerRow).getAllByText('1').length).toBeGreaterThanOrEqual(1)
   })
 })

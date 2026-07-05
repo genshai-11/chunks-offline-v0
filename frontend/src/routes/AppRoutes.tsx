@@ -1,11 +1,12 @@
 import { ThemeIconToggle, type ThemeName } from '../components/ui/ThemeSwitcher'
-import { AdminWorkspacePage } from '../features/admin/AdminWorkspacePage'
+import { HistoryPage } from '../features/admin/HistoryPage'
+import { LibraryPage } from '../features/admin/LibraryPage'
 import { LearnerJoinPage } from '../features/learner/LearnerJoinPage'
 import { TeacherRoomPage } from '../features/teacher/TeacherRoomPage'
 import { TeacherSetupPage } from '../features/teacher/TeacherSetupPage'
 import { RoleEntryPage } from './RoleEntryPage'
 
-export type AppRoute = 'home' | 'admin' | 'teacher-setup' | 'teacher-room' | 'learner-room'
+export type AppRoute = 'home' | 'library' | 'history' | 'teacher-setup' | 'teacher-room' | 'learner-room'
 
 interface AppRoutesProps {
   activeTheme: ThemeName
@@ -13,7 +14,8 @@ interface AppRoutesProps {
 }
 
 export function getRouteFromPath(pathname: string): AppRoute {
-  if (pathname === '/admin') return 'admin'
+  if (pathname === '/library' || pathname === '/admin') return 'library'
+  if (pathname === '/history') return 'history'
   if (pathname === '/teacher/setup') return 'teacher-setup'
   if (pathname.startsWith('/teacher/room/')) return 'teacher-room'
   if (pathname.startsWith('/room/') || pathname.startsWith('/chunks-mirror/join/')) return 'learner-room'
@@ -24,8 +26,10 @@ export function AppRoutes({ activeTheme, onThemeChange }: AppRoutesProps) {
   const route = getRouteFromPath(window.location.pathname)
 
   switch (route) {
-    case 'admin':
-      return <AdminWorkspacePage themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />} />
+    case 'library':
+      return <LibraryPage themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />} />
+    case 'history':
+      return <HistoryPage themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />} />
     case 'teacher-setup':
       return <TeacherSetupPage themeControl={<ThemeIconToggle activeTheme={activeTheme} onThemeChange={onThemeChange} />} />
     case 'teacher-room':

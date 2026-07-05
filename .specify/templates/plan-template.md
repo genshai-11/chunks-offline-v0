@@ -47,6 +47,7 @@ Generated plans MUST explicitly evaluate these CHUNKS constitution gates:
 - Learner-Safe UX and Accessibility: learner states, disabled reasons, focus/contrast/touch targets included
 - Dynamic Scoring and Historical Auditability: scoring coefficients and formula snapshots planned
 - Testable Incremental Delivery and Release Control: tests, preview/canary, rollback, restore, and post-deploy gates included
+- CodeGraph-First Codebase Work: existing-code flows explored with MCP CodeGraph before implementation; unavailable CodeGraph documented with fallback
 
 ## Project Structure
 

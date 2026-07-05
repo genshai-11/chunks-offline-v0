@@ -120,7 +120,7 @@ with picked as (
     performance_y,
     reflection_time_ms
   )
-  select round_i.id, round_i.assigned_learner_id, 'green', 2, 1200
+  select round_i.id, round_i.assigned_learner_id, 'purple', 3, 1200
   from round_i
   returning *
 )
@@ -134,13 +134,13 @@ select 'valid-response-snapshots',
     select 1
     from public.learner_responses lr
     join response_validation_ids ids on ids.response_id = lr.id
-    where lr.response_color = 'green'
-      and lr.performance_y = 2
+    where lr.response_color = 'purple'
+      and lr.performance_y = 3
       and lr.cci_result >= 0
       and lr.cpd_result >= 0
       and lr.reflection_seconds = 1.2
   ),
-  'Accepted Green response stores Y, reflection, CCI, and CPD snapshots';
+  'Accepted Purple response stores Y=3, reflection, CCI, and CPD snapshots';
 
 -- Duplicate should fail because learner_responses has unique(round_id).
 do $$

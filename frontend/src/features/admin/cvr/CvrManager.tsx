@@ -2,9 +2,7 @@ import type { FormEvent } from 'react'
 import { useState } from 'react'
 
 import { Alert } from '../../../components/ui/Alert'
-import { Button } from '../../../components/ui/Button'
-import { Card } from '../../../components/ui/Card'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Badge, Button, Card, CardContent, CardFooter, CardHeader } from '../../../components/primitives'
 import type { CvrUnit } from '../../../lib/domain/types'
 import { saveCvrUnit } from './cvrService'
 
@@ -39,49 +37,63 @@ export function CvrManager({ onRefresh, units }: CvrManagerProps) {
   }
 
   return (
-    <section aria-labelledby="cvr-manager-title" className="space-y-4">
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+    <section aria-labelledby="cvr-manager-title" className="grid gap-4">
+      <Card padding="sm">
+        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-chunks-body">CVR Manager</p>
-            <h2 className="mt-1 text-2xl font-semibold text-chunks-ink" id="cvr-manager-title">CVR Ω values</h2>
+            <Badge tone="brand">CVR Manager</Badge>
+            <h2 className="mt-3 text-lg font-semibold text-chunks-ink" id="cvr-manager-title">CVR Ω values</h2>
           </div>
-          <StatusBadge tone="brand">{units.filter((unit) => unit.active).length} active</StatusBadge>
-        </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {units.map((unit) => (
-            <button className="rounded-2xl border border-chunks-hairline p-4 text-left" key={unit.id} onClick={() => setSelectedUnitId(unit.id)} type="button">
-              <span className="font-semibold text-chunks-ink">{unit.label}</span>
-              <span className="mt-1 block text-sm text-chunks-body">{unit.value} {unit.unit_symbol} · {unit.active ? 'active' : 'inactive'}</span>
-            </button>
-          ))}
-          {units.length === 0 ? <p className="text-sm text-chunks-body">No CVR values yet. Save the form below to create one.</p> : null}
-        </div>
+          <Badge tone="neutral">{units.filter((unit) => unit.active).length} active</Badge>
+        </CardHeader>
+        <CardContent className="mt-4 grid gap-2">
+          {units.map((unit) => {
+            const selected = unit.id === selectedUnit?.id
+            return (
+              <button
+                className={`grid gap-1 rounded-2xl border px-3 py-3 text-left transition active:translate-y-px ${selected ? 'border-chunks-red bg-chunks-soft' : 'border-chunks-hairline bg-white hover:bg-chunks-soft/60'}`}
+                key={unit.id}
+                onClick={() => setSelectedUnitId(unit.id)}
+                type="button"
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-chunks-ink">{unit.label}</span>
+                  <Badge size="sm" tone={unit.active ? 'success' : 'neutral'}>{unit.active ? 'active' : 'inactive'}</Badge>
+                </span>
+                <span className="font-mono text-xs text-chunks-body">{unit.value} {unit.unit_symbol}</span>
+              </button>
+            )
+          })}
+          {units.length === 0 ? <p className="rounded-2xl bg-chunks-soft p-3 text-sm text-chunks-body">No CVR values yet. Save the inspector to create one.</p> : null}
+        </CardContent>
       </Card>
 
-      <Card as="form" onSubmit={handleSave}>
-        <h3 className="text-xl font-semibold text-chunks-ink">Edit CVR value</h3>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <Card as="form" onSubmit={handleSave} padding="sm">
+        <CardHeader>
+          <Badge tone="info">Inspector</Badge>
+          <h3 className="mt-3 text-lg font-semibold text-chunks-ink">Edit CVR value</h3>
+        </CardHeader>
+        <CardContent className="mt-4 grid gap-3">
           <label className="block">
             <span className="text-sm font-semibold text-chunks-ink">Label</span>
-            <input className="mt-2 min-h-12 w-full rounded-2xl border border-chunks-hairline px-4" defaultValue={selectedUnit?.label ?? ''} name="label" />
+            <input className="mt-2 min-h-11 w-full rounded-2xl border border-chunks-hairline px-3" defaultValue={selectedUnit?.label ?? ''} name="label" />
           </label>
           <label className="block">
             <span className="text-sm font-semibold text-chunks-ink">Unit symbol</span>
-            <input className="mt-2 min-h-12 w-full rounded-2xl border border-chunks-hairline px-4" defaultValue={selectedUnit?.unit_symbol ?? 'Ω'} name="unitSymbol" />
+            <input className="mt-2 min-h-11 w-full rounded-2xl border border-chunks-hairline px-3" defaultValue={selectedUnit?.unit_symbol ?? 'Ω'} name="unitSymbol" />
           </label>
           <label className="block">
             <span className="text-sm font-semibold text-chunks-ink">CVR unit value</span>
-            <input className="mt-2 min-h-12 w-full rounded-2xl border border-chunks-hairline px-4" defaultValue={selectedUnit?.value ?? 1} min="0" name="value" step="0.01" type="number" />
+            <input className="mt-2 min-h-11 w-full rounded-2xl border border-chunks-hairline px-3" defaultValue={selectedUnit?.value ?? 1} min="0" name="value" step="0.01" type="number" />
           </label>
-          <label className="flex min-h-12 items-center gap-3 rounded-2xl border border-chunks-hairline px-4">
+          <label className="flex min-h-11 items-center gap-3 rounded-2xl border border-chunks-hairline px-3">
             <input defaultChecked={selectedUnit?.active ?? true} name="active" type="checkbox" />
             <span className="text-sm font-semibold text-chunks-ink">Active CVR value</span>
           </label>
-        </div>
-        <div className="mt-5"><Button type="submit">Save CVR value</Button></div>
-        {statusMessage ? <Alert className="mt-5" title="CVR status" tone="success">{statusMessage}</Alert> : null}
-        {error ? <Alert className="mt-5" title="CVR action failed" tone="error">{error}</Alert> : null}
+        </CardContent>
+        <CardFooter><Button size="sm" type="submit">Save CVR value</Button></CardFooter>
+        {statusMessage ? <Alert className="mt-4" title="CVR status" tone="success">{statusMessage}</Alert> : null}
+        {error ? <Alert className="mt-4" title="CVR action failed" tone="error">{error}</Alert> : null}
       </Card>
     </section>
   )

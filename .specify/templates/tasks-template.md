@@ -63,6 +63,8 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
+> For existing-code changes, generated tasks MUST include CodeGraph setup/exploration work before edits, such as verifying `codegraph status .`, running `codegraph init .` / `codegraph index .` if needed, and using MCP CodeGraph to inspect relevant symbols, call paths, and blast radius.
+
 - [ ] T004 Setup database schema and migrations framework
 - [ ] T005 [P] Implement authentication/authorization framework
 - [ ] T006 [P] Setup API routing and middleware structure
@@ -153,6 +155,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] TXXX [P] Documentation updates in docs/
 - [ ] TXXX Code cleanup and refactoring
+- [ ] TXXX Re-run MCP CodeGraph exploration for changed symbols and record any uncovered blast-radius follow-ups
 - [ ] TXXX Performance optimization across all stories
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening

@@ -17,7 +17,8 @@ const defaultTables: LiveRoomTable[] = [
   'practice_rooms',
   'room_memberships',
   'room_rounds',
-  'learner_responses',
+  // 'learner_responses' excluded: table has no `room_id` column (only `round_id`).
+  // Responses are handled via the separate progress subscription (broad filter + refetch).
 ]
 
 export function subscribeToRoomState({
@@ -60,8 +61,28 @@ export async function unsubscribeFromRoomState(channel: RealtimeChannel, client:
   await client.removeChannel(channel)
 }
 
+// T115: Support for direct Broadcast (ephemeral events) alongside postgres_changes.
+// Use for non-durable signals like timer ticks or "round opened" to achieve Kahoot-like instant feel.
+// Example: await broadcastToRoom(roomId, 'round-opened', { roundId })
+export async function broadcastToRoom(
+  roomId: string,
+  event: string,
+  payload: unknown,
+  client: SupabaseClient = defaultSupabase,
+): Promise<void> {
+  const channel = client.channel(`room:${roomId}`)
+  // Subscribe briefly to send, then cleanup. In production, reuse channels.
+  await channel.subscribe()
+  await channel.send({
+    type: 'broadcast',
+    event,
+    payload,
+  })
+  await client.removeChannel(channel)
+}
+
 function getRoomFilter(table: LiveRoomTable, roomId: string): string | undefined {
   if (table === 'practice_rooms') return `id=eq.${roomId}`
-  if (table === 'learner_progress') return undefined
+  if (table === 'learner_progress' || table === 'learner_responses') return undefined
   return `room_id=eq.${roomId}`
 }

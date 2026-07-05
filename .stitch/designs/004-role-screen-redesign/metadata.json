@@ -1,0 +1,96 @@
+{
+  "projectId": "13176206325646835063",
+  "downloadedAt": "2026-07-04T21:51:00+07:00",
+  "screens": [
+    {
+      "title": "CHUNKS Create Room Setup",
+      "screenId": "58735b68876f46918867f67f7cf7b911",
+      "name": "projects/13176206325646835063/screens/58735b68876f46918867f67f7cf7b911",
+      "deviceType": "DESKTOP",
+      "width": "3072",
+      "height": "2176",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-create-room-setup-58735b68.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-create-room-setup-58735b68.html"
+    },
+    {
+      "title": "CHUNKS History & Analytics",
+      "screenId": "378fb520dc5740f59e59eea82488f158",
+      "name": "projects/13176206325646835063/screens/378fb520dc5740f59e59eea82488f158",
+      "deviceType": "DESKTOP",
+      "width": "2560",
+      "height": "2322",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-history-analytics-378fb520.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-history-analytics-378fb520.html"
+    },
+    {
+      "title": "CHUNKS Learner Room - Live Interaction",
+      "screenId": "a42e8b189f8b42908f115f35b91ebafa",
+      "name": "projects/13176206325646835063/screens/a42e8b189f8b42908f115f35b91ebafa",
+      "deviceType": "DESKTOP",
+      "width": "2560",
+      "height": "2048",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-learner-room-live-interaction-a42e8b18.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-learner-room-live-interaction-a42e8b18.html"
+    },
+    {
+      "title": "CHUNKS Live Room Console",
+      "screenId": "2b7ce63438f74ea9bebdaa6c154f5cb3",
+      "name": "projects/13176206325646835063/screens/2b7ce63438f74ea9bebdaa6c154f5cb3",
+      "deviceType": "DESKTOP",
+      "width": "2560",
+      "height": "2182",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-live-room-console-2b7ce634.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-live-room-console-2b7ce634.html"
+    },
+    {
+      "title": "CHUNKS Library",
+      "screenId": "be920baa093e418dae87ab25d5de1433",
+      "name": "projects/13176206325646835063/screens/be920baa093e418dae87ab25d5de1433",
+      "deviceType": "DESKTOP",
+      "width": "3072",
+      "height": "2094",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-library-be920baa.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-library-be920baa.html"
+    },
+    {
+      "title": "CHUNKS Dashboard - Product Map View",
+      "screenId": "fb6eb876b5c448949ccd580a3690144e",
+      "name": "projects/13176206325646835063/screens/fb6eb876b5c448949ccd580a3690144e",
+      "deviceType": "DESKTOP",
+      "width": "2560",
+      "height": "2048",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-dashboard-product-map-view-fb6eb876.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-dashboard-product-map-view-fb6eb876.html"
+    },
+    {
+      "title": "CHUNKS Learner - Live Interaction Mobile",
+      "screenId": "8c32f3f281874cd3811995a7f3fe5169",
+      "name": "projects/13176206325646835063/screens/8c32f3f281874cd3811995a7f3fe5169",
+      "deviceType": "MOBILE",
+      "width": "780",
+      "height": "1768",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-learner-live-interaction-mobile-8c32f3f2.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-learner-live-interaction-mobile-8c32f3f2.html"
+    },
+    {
+      "title": "CHUNKS Learner - Join Room",
+      "screenId": "5441782890974116b7e94aedf8c7963d",
+      "name": "projects/13176206325646835063/screens/5441782890974116b7e94aedf8c7963d",
+      "deviceType": "DESKTOP",
+      "width": "2560",
+      "height": "2048",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-learner-join-room-54417828.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-learner-join-room-54417828.html"
+    },
+    {
+      "title": "CHUNKS Dashboard - Full View Fix",
+      "screenId": "c0d8b3d5c2ea48fa8e9b2491399b2bfd",
+      "name": "projects/13176206325646835063/screens/c0d8b3d5c2ea48fa8e9b2491399b2bfd",
+      "deviceType": "DESKTOP",
+      "width": "2560",
+      "height": "2048",
+      "screenshot": ".stitch/designs/004-role-screen-redesign/chunks-dashboard-full-view-fix-c0d8b3d5.jpg",
+      "html": ".stitch/designs/004-role-screen-redesign/chunks-dashboard-full-view-fix-c0d8b3d5.html"
+    }
+  ]
+}

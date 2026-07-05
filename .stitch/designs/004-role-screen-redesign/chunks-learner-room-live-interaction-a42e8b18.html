@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CHUNKS Learner Room</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Public+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Public+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-dim": "#a9001d",
+                    "on-error": "#fff7f6",
+                    "surface-container-high": "#e4e9ea",
+                    "on-secondary-fixed-variant": "#785500",
+                    "on-surface": "#2d3435",
+                    "secondary-container": "#ffdea8",
+                    "tertiary-container": "#6cf6a6",
+                    "on-primary-fixed-variant": "#b90722",
+                    "surface-container-low": "#f2f4f4",
+                    "surface-dim": "#d3dbdd",
+                    "on-secondary-fixed": "#553b00",
+                    "on-primary-fixed": "#850014",
+                    "on-background": "#2d3435",
+                    "tertiary": "#006e3f",
+                    "background": "#f9f9f9",
+                    "on-tertiary": "#e7ffeb",
+                    "secondary-fixed": "#ffdea8",
+                    "secondary": "#7d5900",
+                    "on-primary-container": "#a7001d",
+                    "surface-container": "#ebeeef",
+                    "on-tertiary-fixed-variant": "#00653a",
+                    "surface": "#f9f9f9",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-variant": "#dde4e5",
+                    "outline": "#757c7d",
+                    "on-tertiary-fixed": "#004626",
+                    "tertiary-fixed": "#6cf6a6",
+                    "primary-fixed": "#ffdad7",
+                    "on-secondary": "#fff8f1",
+                    "inverse-surface": "#0c0f0f",
+                    "inverse-on-surface": "#9c9d9d",
+                    "error-dim": "#5c1202",
+                    "on-surface-variant": "#596061",
+                    "outline-variant": "#acb3b4",
+                    "secondary-fixed-dim": "#ffcd71",
+                    "tertiary-dim": "#006036",
+                    "surface-tint": "#bd0d25",
+                    "surface-bright": "#f9f9f9",
+                    "on-primary": "#fff6f5",
+                    "error-container": "#fe8b70",
+                    "primary-container": "#ffdad7",
+                    "primary": "#bd0d25",
+                    "on-secondary-container": "#6c4c00",
+                    "error": "#9e422c",
+                    "secondary-dim": "#6e4d00",
+                    "on-tertiary-container": "#005b33",
+                    "surface-container-highest": "#dde4e5",
+                    "primary-fixed-dim": "#ffc7c3",
+                    "on-error-container": "#742410",
+                    "inverse-primary": "#ff5355",
+                    "tertiary-fixed-dim": "#5de899"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "display": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Public Sans"]
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .animate-subtle-pulse {
+            animation: pulse-opacity 3s ease-in-out infinite;
+        }
+        @keyframes pulse-opacity {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .learner-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            height: 100%;
+        }
+        @media (min-width: 1024px) {
+            .learner-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .bento-card {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .bento-card:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body h-screen flex overflow-hidden">
+<!-- Shared SideNavBar -->
+<aside class="flex flex-col h-screen p-4 space-y-2 docked left h-full w-64 bg-surface dark:bg-surface-dim border-r border-outline-variant dark:border-outline shrink-0">
+<div class="mb-8 px-4">
+<h1 class="text-lg font-bold tracking-tight text-primary dark:text-primary-dim">CHUNKS</h1>
+<p class="font-body text-on-surface-variant text-xs">Classroom Console</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active Tab: Learner -->
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-full opacity-90 transition-transform scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-label font-semibold">Learner</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label">History</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</div>
+<div class="overflow-hidden">
+<p class="font-label font-bold text-sm text-on-surface truncate">Alex</p>
+<p class="font-mono text-[10px] text-on-surface-variant">CODE: AB1234</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Shared TopAppBar -->
+<header class="flex justify-between items-center h-16 px-6 w-full bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline z-10 shrink-0">
+<div class="flex items-center gap-4">
+<span class="text-xl font-headline font-black text-on-surface dark:text-on-surface-variant">Learner</span>
+<div class="h-4 w-[1px] bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1 rounded-full border border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div>
+<span class="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider" id="room-state-text">Waiting for Teacher</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="font-mono text-sm font-bold text-primary">AB1234</span>
+<span class="font-label text-[10px] text-on-surface-variant">ROOM CODE</span>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Canvas Area -->
+<div class="flex-1 overflow-y-auto p-8 relative">
+<!-- Context Banner -->
+<div class="max-w-5xl mx-auto mb-8 flex justify-between items-end" id="content-header">
+<div>
+<h2 class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Current Task</h2>
+<p class="font-mono text-2xl font-black text-on-surface" id="item-id">ITEM #012</p>
+</div>
+<div class="text-right">
+<p class="font-label text-xs text-on-surface-variant mb-1">Session Duration</p>
+<p class="font-mono text-xl font-medium text-on-surface">12:45</p>
+</div>
+</div>
+<!-- Main Interactive States Wrapper -->
+<div class="max-w-5xl mx-auto h-[calc(100%-120px)]" id="interaction-container">
+<!-- STATE 1: Active Response (Visible by default in this demo) -->
+<div class="h-full flex flex-col" id="state-active">
+<div class="flex-1 learner-grid">
+<!-- RED OPTION -->
+<button class="bento-card group flex flex-col items-center justify-center gap-6 rounded-3xl bg-surface-container-lowest border-4 border-transparent hover:border-primary transition-all p-8 shadow-sm" onclick="handleResponse('red')">
+<div class="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-primary text-5xl" style="font-variation-settings: 'FILL' 1;">error</span>
+</div>
+<span class="font-headline text-2xl font-extrabold text-on-surface">RED</span>
+</button>
+<!-- YELLOW OPTION -->
+<button class="bento-card group flex flex-col items-center justify-center gap-6 rounded-3xl bg-surface-container-lowest border-4 border-transparent hover:border-secondary transition-all p-8 shadow-sm" onclick="handleResponse('yellow')">
+<div class="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-secondary-fixed-dim flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-secondary-fixed text-5xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<span class="font-headline text-2xl font-extrabold text-on-surface">YELLOW</span>
+</button>
+<!-- GREEN OPTION -->
+<button class="bento-card group flex flex-col items-center justify-center gap-6 rounded-3xl bg-surface-container-lowest border-4 border-transparent hover:border-tertiary transition-all p-8 shadow-sm" onclick="handleResponse('green')">
+<div class="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-tertiary-fixed flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-tertiary-fixed text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-headline text-2xl font-extrabold text-on-surface">GREEN</span>
+</button>
+<!-- PURPLE OPTION (Using Tertiary variant or custom tone from design system palette) -->
+<button class="bento-card group flex flex-col items-center justify-center gap-6 rounded-3xl bg-surface-container-lowest border-4 border-transparent hover:border-on-primary-fixed-variant transition-all p-8 shadow-sm" onclick="handleResponse('purple')">
+<div class="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-on-primary-fixed-variant flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<span class="font-headline text-2xl font-extrabold text-on-surface">PURPLE</span>
+</button>
+</div>
+</div>
+<!-- STATE 2: Waiting State (Hidden) -->
+<div class="hidden h-full flex items-center justify-center text-center" id="state-waiting">
+<div class="max-w-md space-y-8 p-12 bg-surface-container-low rounded-[2rem] border border-outline-variant">
+<div class="flex justify-center">
+<div class="relative w-20 h-20">
+<div class="absolute inset-0 rounded-full border-4 border-outline-variant border-t-primary animate-spin"></div>
+<div class="absolute inset-2 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-dim text-3xl">hourglass_empty</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<h3 class="text-3xl font-headline font-bold text-on-surface">Get Ready</h3>
+<p class="text-on-surface-variant font-body">The next round will start soon...</p>
+</div>
+</div>
+</div>
+<!-- STATE 3: Success / Already Responded (Hidden) -->
+<div class="hidden h-full flex items-center justify-center text-center" id="state-responded">
+<div class="max-w-lg w-full p-12 bg-tertiary-container text-on-tertiary-container rounded-[2.5rem] shadow-xl border border-tertiary-fixed animate-subtle-pulse">
+<div class="w-24 h-24 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<h3 class="text-4xl font-headline font-black mb-4">Nice Work!</h3>
+<p class="text-lg opacity-80 mb-8">Response captured! You selected <span class="font-bold uppercase" id="selected-color-name"></span>.</p>
+<div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/30 backdrop-blur-sm border border-white/40" id="color-preview-pill">
+<div class="w-4 h-4 rounded-full" id="color-preview-dot"></div>
+<span class="font-label font-bold text-sm tracking-widest">LOCKED IN</span>
+</div>
+</div>
+</div>
+<!-- STATE 4: Blocked / Round Closed (Hidden) -->
+<div class="hidden h-full flex items-center justify-center text-center" id="state-blocked">
+<div class="max-w-md p-10 bg-surface-container-highest rounded-3xl border-2 border-outline-variant">
+<span class="material-symbols-outlined text-6xl text-outline mb-6">lock_clock</span>
+<h3 class="text-2xl font-headline font-bold text-on-surface mb-2">Round Closed</h3>
+<p class="text-on-surface-variant font-body mb-6">Responses are currently locked for ITEM #012. Please wait for the teacher to advance.</p>
+<button class="font-label text-xs font-bold text-primary underline underline-offset-4 hover:opacity-70 transition-opacity" onclick="resetDemo()">Return to Demo Start</button>
+</div>
+</div>
+</div>
+<!-- Interactive UI Floating Control (Debug for Prototype) -->
+<div class="fixed bottom-6 right-6 flex gap-2 bg-white p-2 rounded-full shadow-lg border border-outline-variant scale-75 opacity-50 hover:opacity-100 transition-opacity z-50">
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary-container transition-colors" onclick="toggleState('active')" title="Active">1</button>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary-container transition-colors" onclick="toggleState('waiting')" title="Waiting">2</button>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary-container transition-colors" onclick="toggleState('responded', 'GREEN')" title="Success">3</button>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary-container transition-colors" onclick="toggleState('blocked')" title="Blocked">4</button>
+</div>
+</div>
+</main>
+<script>
+        function toggleState(state, color = 'GREEN') {
+            const states = ['active', 'waiting', 'responded', 'blocked'];
+            const roomText = document.getElementById('room-state-text');
+            
+            states.forEach(s => {
+                document.getElementById('state-' + s).classList.add('hidden');
+            });
+
+            document.getElementById('state-' + state).classList.remove('hidden');
+
+            // Update header status text
+            if (state === 'active') {
+                roomText.innerText = "Round Active";
+                roomText.parentElement.classList.replace('bg-surface-container', 'bg-tertiary-container');
+                roomText.classList.replace('text-on-surface-variant', 'text-on-tertiary-container');
+            } else if (state === 'waiting') {
+                roomText.innerText = "Waiting for Teacher";
+                roomText.parentElement.classList.replace('bg-tertiary-container', 'bg-surface-container');
+                roomText.classList.replace('text-on-tertiary-container', 'text-on-surface-variant');
+            } else if (state === 'responded') {
+                roomText.innerText = "Submission Received";
+                const dot = document.getElementById('color-preview-dot');
+                const nameSpan = document.getElementById('selected-color-name');
+                nameSpan.innerText = color;
+                
+                // Style the dot based on choice
+                dot.className = "w-4 h-4 rounded-full";
+                if(color === 'RED') dot.classList.add('bg-primary');
+                if(color === 'YELLOW') dot.classList.add('bg-secondary');
+                if(color === 'GREEN') dot.classList.add('bg-tertiary');
+                if(color === 'PURPLE') dot.classList.add('bg-on-primary-fixed-variant');
+            } else if (state === 'blocked') {
+                roomText.innerText = "Locked";
+            }
+        }
+
+        function handleResponse(color) {
+            // Simulate sending response and transitioning state
+            toggleState('responded', color.toUpperCase());
+        }
+
+        function resetDemo() {
+            toggleState('active');
+        }
+
+        // Initialize state
+        window.onload = () => {
+            toggleState('active');
+        };
+    </script>
+</body></html>

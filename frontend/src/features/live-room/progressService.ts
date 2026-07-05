@@ -204,6 +204,7 @@ export function summarizeLearnerResponses(
     red_count: responses.filter((response) => response.response_color === 'red').length,
     yellow_count: responses.filter((response) => response.response_color === 'yellow').length,
     green_count: responses.filter((response) => response.response_color === 'green').length,
+    purple_count: responses.filter((response) => response.response_color === 'purple').length,
     highest_cpd: roundTo(Math.max(0, ...responses.map((response) => toNumber(response.cpd_result))), 4),
     total_cpd: totalCpd,
     average_cpd: responseCount ? roundTo(totalCpd / responseCount, 4) : 0,

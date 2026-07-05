@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AdminWorkspacePage } from '../../src/features/admin/AdminWorkspacePage'
+import { LibraryPage } from '../../src/features/admin/LibraryPage'
 import { loadSessionAnalytics } from '../../src/features/admin/analytics/analyticsService'
 import { loadCciAdminData, saveCciStandardCard } from '../../src/features/admin/cci/cciService'
 import { loadCvrUnits, saveCvrUnit } from '../../src/features/admin/cvr/cvrService'
@@ -91,14 +91,16 @@ describe('Admin resource manager', () => {
 
   it('filters missing audio resources, saves CVR/audio fields, and confirms batch approval', async () => {
     const user = userEvent.setup()
-    render(<AdminWorkspacePage />)
+    render(<LibraryPage />)
 
-    expect(await screen.findByRole('heading', { name: /admin workspace/i })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /missing english audio/i }))
+    expect(await screen.findByRole('heading', { level: 1, name: /^Library$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /history and analytics/i })).not.toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText(/^Audio$/i), 'missing-en')
 
-    const resourceCard = screen.getByText('A-001').closest('.theme-card') as HTMLElement
+    const resourceCard = screen.getAllByText('Teacher-only English prompt')[0].closest('.theme-card') as HTMLElement
     expect(resourceCard).toBeInTheDocument()
-    expect(within(resourceCard).getByText(/missing en audio/i)).toBeInTheDocument()
+    expect(within(resourceCard).getByText(/Code A-001/i)).toBeInTheDocument()
+    expect(within(resourceCard).getByText(/EN missing/i)).toBeInTheDocument()
 
     await user.clear(screen.getByLabelText(/^CVR Ω$/i))
     await user.type(screen.getByLabelText(/^CVR Ω$/i), '15')

@@ -16,5 +16,7 @@ test('Teacher live room keeps keyboard/audio route stable when room state is una
   await page.keyboard.press('s')
 
   await expect(page.getByText(/live room action failed|loading live room/i)).toBeVisible()
-  expect(consoleErrors.filter((error) => !error.includes('Supabase realtime subscription error'))).toHaveLength(0)
+  // T112: after realtime fixes (no bad filters), expect zero realtime subscription errors too
+  expect(consoleErrors.filter((error) => error.includes('Supabase realtime subscription error'))).toHaveLength(0)
+  expect(consoleErrors).toHaveLength(0)
 })

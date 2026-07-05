@@ -11,6 +11,7 @@ describe('simple scoring', () => {
     ['red', 0],
     ['yellow', 1],
     ['green', 2],
+    ['purple', 3],
   ] as const)('maps %s response to learner performance %i', (color, expected) => {
     expect(getLearnerPerformanceY(color)).toBe(expected)
   })

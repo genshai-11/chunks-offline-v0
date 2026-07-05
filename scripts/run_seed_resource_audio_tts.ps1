@@ -11,6 +11,9 @@ Examples:
 
   # Full resumable Vietnamese run
   .\scripts\run_seed_resource_audio_tts.ps1 -Language vi -BatchSize 25
+
+  # Vietnamese Level B first, reading key from Supabase Vault if NINEROUTER_KEY env is unset
+  .\scripts\run_seed_resource_audio_tts.ps1 -Language vi -CourseTitle 'Chunks-Material-Level-B' -BatchSize 25 -ConfigSource auto
 #>
 
 param(
@@ -21,16 +24,23 @@ param(
 
   [int]$BatchSize = 25,
 
+  [string]$CourseTitle = '',
+
+  [ValidateSet('env','vault','auto')]
+  [string]$ConfigSource = 'auto',
+
   [switch]$DryRun,
 
-  [string]$NinerouterUrl = 'https://rbkqhml.abc-tunnel.us/v1'
+  [string]$NinerouterUrl = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
-$env:NINEROUTER_URL = $NinerouterUrl
+if ($NinerouterUrl.Trim().Length -gt 0) {
+  $env:NINEROUTER_URL = $NinerouterUrl
+}
 
-if (-not $DryRun) {
+if (-not $DryRun -and $ConfigSource -eq 'env') {
   if (-not $env:NINEROUTER_KEY) {
     $secure = Read-Host 'Enter NINEROUTER_KEY' -AsSecureString
     $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
@@ -42,8 +52,10 @@ if (-not $DryRun) {
   }
 }
 
-$argsList = @('scripts/seed_resource_audio_tts.py', '--language', $Language, '--batch-size', [string]$BatchSize)
+$argsList = @('scripts/seed_resource_audio_tts.py', '--language', $Language, '--batch-size', [string]$BatchSize, '--config-source', $ConfigSource)
 if ($Limit -gt 0) { $argsList += @('--limit', [string]$Limit) }
+if ($CourseTitle.Trim().Length -gt 0) { $argsList += @('--course-title', $CourseTitle) }
+if ($NinerouterUrl.Trim().Length -gt 0) { $argsList += @('--ninerouter-url', $NinerouterUrl) }
 if ($DryRun) { $argsList += '--dry-run' }
 
 python @argsList

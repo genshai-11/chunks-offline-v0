@@ -124,6 +124,7 @@ describe('LearnerJoinPage', () => {
         updated_at: '',
       },
       existingResponse: null,
+      roundHasCapturedResponse: false,
       learnerState: 'assigned',
       disabledReason: null,
     })
@@ -140,9 +141,10 @@ describe('LearnerJoinPage', () => {
     await waitFor(() => {
       expect(joinRoom).toHaveBeenCalledWith({ roomCode: 'ABC123', displayName: 'Lucy Learner' })
     })
-    expect(await screen.findByText('S001')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'S001' })).toBeInTheDocument()
     expect(screen.queryByText('I can answer this sentence.')).not.toBeInTheDocument()
     expect(screen.queryByText('Tôi có thể trả lời câu này.')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /green/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /green response/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /purple response/i })).toBeEnabled()
   })
 })
